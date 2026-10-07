@@ -1,38 +1,84 @@
 <section class="action-card" aria-labelledby="suggestion-title" aria-live="polite">
-  <div class="action-kicker"><span class="sparkle" aria-hidden="true">✦</span> YOUR NEXT STEP</div>
+  <div class="action-kicker action-kicker-centered"><span class="sparkle" aria-hidden="true">✦</span> YOUR NEXT STEP</div>
   <div class="action-main">
     <span class="action-label">Focus on this</span>
     <h2 id="suggestion-title">{{ action.action }}</h2>
   </div>
   <p class="action-why">{{ action.why }}</p>
+  {% if action.source_references %}
+  <aside class="action-sources" aria-label="Sources used for this suggestion">
+    <span class="detail-label">Reference from your notes</span>
+    {% for source in action.source_references %}
+    <div class="action-source">
+      {% if source.url %}
+      <a href="{{ source.url }}" target="_blank" rel="noopener noreferrer">{{ source.title }}</a>
+      {% else %}
+      <span class="action-source-title">{{ source.title }}</span>
+      {% endif %}
+      <p>{{ source.text[:420] }}{% if source.text|length > 420 %}…{% endif %}</p>
+    </div>
+    {% endfor %}
+  </aside>
+  {% endif %}
   <div class="action-detail">
     <span class="detail-label">Start here</span>
     <p>{{ action.first_step }}</p>
   </div>
   <div class="action-support">
-    <span class="timebox">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7v5l3 2"></path></svg>
-      <span>{{ action.timebox_minutes }} min</span>
-    </span>
-    <p class="fallback"><span>If you need a smaller step</span><span>{{ action.fallback }}</span></p>
+    <div class="timebox">
+      <span class="timebox-label">Available time</span>
+      <span class="timebox-value">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7v5l3 2"></path></svg>
+        {{ action.timebox_minutes }} min
+      </span>
+    </div>
+    <div class="fallback">
+      <span class="fallback-label">If you need a smaller step</span>
+      <span class="fallback-text">{{ action.fallback }}</span>
+    </div>
   </div>
+  {% if action.task_id %}
+  <div class="suggestion-progress">
+    <div class="suggestion-progress-heading">
+      <label for="suggestion-progress">Task progress</label>
+      <output id="suggestion-progress-value" for="suggestion-progress">{{ action.progress }}%</output>
+    </div>
+    <div class="suggestion-progress-control">
+      <input
+        type="range"
+        id="suggestion-progress"
+        min="{{ action.progress }}"
+        max="100"
+        value="{{ action.progress }}"
+        data-progress-slider
+        aria-describedby="suggestion-progress-value"
+      >
+    </div>
+    <span class="field-hint">Move progress forward to mark this session done. The task is complete at 100%.</span>
+  </div>
+  {% endif %}
   {% if action.outcome %}
   <p class="recorded-outcome">You marked this one {{ action.outcome }}.</p>
   {% else %}
   <div class="feedback-actions" aria-label="How did it go?">
-    <form action="/feedback" method="post">
+    <form action="/feedback" method="post" class="feedback-primary" data-async-form>
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <input type="hidden" name="outcome" value="done">
-      <button class="button button-primary" type="submit">I did it</button>
+      {% if action.task_id %}<input type="hidden" name="progress" value="{{ action.progress }}" data-progress-submit>{% endif %}
+      <button class="button button-primary" type="submit" data-progress-done {% if action.task_id %}disabled title="Move task progress forward first"{% endif %}>I did it</button>
     </form>
-    <form action="/feedback" method="post">
+    <form action="/feedback" method="post" class="feedback-secondary" data-async-form>
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <input type="hidden" name="outcome" value="skip">
+      <label class="feedback-note-label" for="feedback-note-skip">What got in the way?</label>
+      <textarea class="feedback-note" id="feedback-note-skip" name="feedback_note" maxlength="500" required placeholder="Add a short note"></textarea>
       <button class="button button-secondary" type="submit">Not now</button>
     </form>
-    <form action="/feedback" method="post">
+    <form action="/feedback" method="post" class="feedback-secondary" data-async-form>
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <input type="hidden" name="outcome" value="blocked">
+      <label class="feedback-note-label" for="feedback-note-blocked">What are you stuck on?</label>
+      <textarea class="feedback-note" id="feedback-note-blocked" name="feedback_note" maxlength="500" required placeholder="Add a short note"></textarea>
       <button class="button button-tertiary" type="submit">I’m stuck</button>
     </form>
   </div>

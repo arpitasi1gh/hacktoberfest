@@ -9,16 +9,20 @@
       {% if task.notes %}<span class="task-notes">{{ task.notes }}</span>{% endif %}
       <span class="task-meta">
         {% if task.deadline %}Due {{ task.deadline[:16] | replace("T", " ") }} · {% endif %}
-        {{ task.estimated_minutes }} min · {{ task.energy_cost }} energy · priority {{ task.importance }}/5
+        {{ task.estimated_minutes }} min/day · {{ task.energy_cost }} energy · priority {{ task.importance }}/5
       </span>
+      <div class="task-progress" aria-label="Task progress {{ task.progress }} percent">
+        <progress max="100" value="{{ task.progress }}">{{ task.progress }}%</progress>
+        <span>{{ task.progress }}%</span>
+      </div>
     </div>
     <div class="task-actions">
-      <form action="/tasks/{{ task.id }}/complete" method="post">
+      <form action="/tasks/{{ task.id }}/complete" method="post" data-async-form>
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-        <button class="icon-action" type="submit" data-task-row-action>Done</button>
+        <button class="icon-action" type="submit" data-task-row-action {% if task.progress < 100 %}disabled title="Move progress to 100% before completing this task"{% endif %}>Done</button>
       </form>
       <button class="icon-action" type="button" data-task-edit-toggle aria-expanded="false">Edit</button>
-      <form action="/tasks/{{ task.id }}/delete" method="post" data-task-delete>
+      <form action="/tasks/{{ task.id }}/delete" method="post" data-async-form data-task-delete data-confirm="Delete this task? This cannot be undone.">
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <button class="icon-action icon-danger" type="submit" data-task-row-action>Delete</button>
       </form>
@@ -42,11 +46,11 @@
         {% if task.notes %}<span class="task-notes">{{ task.notes }}</span>{% endif %}
       </div>
       <div class="task-actions">
-        <form action="/tasks/{{ task.id }}/reopen" method="post">
+        <form action="/tasks/{{ task.id }}/reopen" method="post" data-async-form>
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <button class="icon-action" type="submit">Reopen</button>
         </form>
-        <form action="/tasks/{{ task.id }}/delete" method="post" data-task-delete>
+        <form action="/tasks/{{ task.id }}/delete" method="post" data-async-form data-task-delete data-confirm="Delete this task? This cannot be undone.">
           <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
           <button class="icon-action icon-danger" type="submit">Delete</button>
         </form>

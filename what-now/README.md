@@ -1,6 +1,6 @@
 # 🌿 What Now? – Local-First AI Next-Action Coach
 
-> A local-first AI assistant that turns your energy, available time, and task list into **one concrete next action**. No cloud, no API keys, no data leaving your laptop.
+> A local-first AI assistant that turns your energy, available time, and task list into **one concrete next action**. No hosted AI, API keys, or cloud model calls.
 
 🔗 **Repo:** [https://github.com/arpitasi1gh/what-now](https://github.com/arpitasi1gh/what-now)  
 📝 **DEV Post:** [Hacktoberfest Weekend Challenge Submission](https://dev.to/arpitasi1gh/what-now-a-local-first-ai-next-action-coach-for-a-tired-college-student-2ec6)
@@ -71,9 +71,10 @@ The problem wasn't her priorities. It was **deciding what to start**. Every plan
 | **🌿 Local-First AI** | Powered by Gemma 3 4B via Ollama. No cloud, no API keys, no usage bills. |
 | **🎯 One Action, Not a List** | The model is constrained to return exactly one task with a startable first step. |
 | **⚡ Context-Aware** | Respects energy level (1–5), available minutes, deadlines, and task energy cost. |
-| **🔐 Private by Default** | Tasks, deadlines, and history never leave the machine. |
-| **📝 Task Notes** | Add specific context to each task ("chapters 4–5, module 2") so suggestions are precise. |
+| **🔐 Private by Default** | Tasks, deadlines, and history stay local; public URLs in notes are fetched to read linked references. |
+| **📝 Task Notes & Links** | Add specific context and public links; readable page text is extracted locally to ground suggestions. |
 | **🔁 Feedback Loop** | Done / Skip / Blocked outcomes are logged and shown in a live activity panel. |
+| **📚 Progress-Aware References** | Linked-page excerpts prioritize the next named section or the section after a completed milestone, with source and excerpt shown on the suggestion card. |
 | **📊 Today's Stats** | Real-time counters for done, skipped, and blocked actions. |
 | **🌱 Rest-Aware** | If energy is low or the list is empty, it suggests rest — not fabricated work. |
 | **🔁 Swappable Models** | One env var swaps Gemma for Qwen, Llama, or any Ollama-compatible model. |
@@ -98,7 +99,7 @@ The problem wasn't her priorities. It was **deciding what to start**. Every plan
 | Technology | Badge | Purpose |
 | :--- | :--- | :--- |
 | **[Jinja2](https://jinja.palletsprojects.com/)** | ![Jinja2](https://img.shields.io/badge/Jinja2-B41717?style=for-the-badge) | Server-rendered templates. No SPA build step. |
-| **[HTMX](https://htmx.org/)** | ![HTMX](https://img.shields.io/badge/HTMX-336699?style=for-the-badge) | Fragment swaps and out-of-band updates. No custom JS. |
+| **Browser Fetch API** | Server-rendered updates without navigating away from the dashboard. |
 | **[Uvicorn](https://www.uvicorn.org/)** | ![Uvicorn](https://img.shields.io/badge/Uvicorn-499848?style=for-the-badge) | ASGI server with hot reload. |
 
 ### **Storage & Tooling**
@@ -126,11 +127,12 @@ what-now/
 │       ├── dependencies.py           # Auth & DB dependencies
 │       ├── prompts.py                # System prompt + user prompt builder
 │       ├── agent.py                  # Ollama call + JSON parsing
+│       ├── web_context.py             # Safe, bounded extraction of linked page text
 │       ├── auth.py                   # Password hashing, session cookies
 │       ├── web.py                    # Shared template/static helpers
 │       ├── routers/
 │       │   ├── __init__.py
-│       │   ├── pages.py              # /, /history
+│       │   ├── pages.py              # Dashboard and theme/history actions
 │       │   ├── tasks.py              # /tasks/*
 │       │   ├── suggestions.py        # /checkin, /feedback
 │       │   └── accounts.py           # /login, /signup, /logout
@@ -151,7 +153,7 @@ what-now/
 └── README.md
 ```
 
-This is a single Python package: routers, Jinja templates, and static assets live together under `src/what_now`. The interface uses server-rendered forms and HTMX — there is no separate frontend build.
+This is a single Python package: routers, Jinja templates, and static assets live together under `src/what_now`. The signed-in interface is one dashboard. Task, suggestion, theme, and history endpoints are form handlers—not separate task pages—and dashboard forms use the browser Fetch API to replace rendered content without a full-page navigation. Login and signup remain separate account pages.
 
 ---
 
@@ -212,16 +214,16 @@ Any model available via `ollama list` will work.
 2. Server pulls the user's **active tasks** from SQLite.
 3. Server builds a context JSON: current time, energy, minutes, task list.
 4. `agent.get_next_action()` POSTs to Ollama's `/api/generate` with `format: "json"`.
-5. Gemma returns structured JSON with five fields: `action`, `why`, `first_step`, `timebox_minutes`, `fallback`.
+5. Gemma returns one structured action with its rationale, first step, timebox, and fallback; the server sets the displayed timebox to the user's available minutes.
 6. Server logs the action and returns the rendered action card.
-7. User clicks **Done / Skip / Blocked**. HTMX swaps the card, updates the task list, and refreshes today's stats — all in one response via out-of-band swaps.
+7. User clicks **Done / Skip / Blocked**. The form submits in the background and the dashboard content updates in place.
 
 ### Why This Reduces Friction
 
 The model isn't asked to be smart. It's asked to **pick one thing and phrase it**:
 
 - One task. Never a list.
-- One timebox. Under 25 minutes.
+- One timebox. Exactly the duration the user says they have.
 - One first step. Under 2 minutes.
 - One fallback. In case energy drops further.
 
@@ -236,17 +238,28 @@ The system prompt (`prompts.py`) enforces the behavior with hard rules:
 ```text
 - Pick exactly ONE task. Never list options.
 - If a task has notes, use a specific detail from them in the action or first_step.
-  Never repeat the title verbatim.
-- Prefer tasks with near deadlines over high-importance distant ones.
+  Analyze the title, notes, progress, deadline, and available context together.
+- Do not invent a file format or arbitrarily choose between options in task notes.
+- Prefer the next unfinished milestone supported by the task notes and readable source.
 - Match energy_cost to energy. If energy <= 2, do not pick energy_cost=high
   tasks unless the deadline is within 24 hours.
-- timebox_minutes must be <= available_minutes and <= 25.
+- The displayed timebox is set by the server to exactly the user's available time.
 - If no tasks exist, or energy=1 and available_minutes < 10, return a rest
   action: walk, water, food, sleep. Do not invent work.
 - Tone: peer, not coach. No "let's", no "you got this", no exclamation marks.
 ```
 
 The model is also constrained at the sampler level via Ollama's `format: "json"`, which eliminates markdown fences and preamble from the output.
+
+### Evaluating context and feedback changes
+
+Run the offline suggestion-quality regression tests from the project directory:
+
+```bash
+uv run python -m unittest discover -s tests -v
+```
+
+These tests cover representative linked-study material, continuation after a completed section, source visibility, and a revised action after blocked feedback. They mock Ollama, so they verify the app's context and retry behavior—not the quality or variability of a particular installed model.
 
 ---
 
@@ -266,11 +279,12 @@ The model is also constrained at the sampler level via Ollama's `format: "json"`
 | :--- | :--- | :--- | :--- |
 | `id` | INTEGER | PRIMARY KEY | Auto-increment ID |
 | `title` | TEXT | NOT NULL | Short task name |
-| `notes` | TEXT | NULLABLE | Specific context (chapters, modules, sets) |
-| `deadline` | TEXT | NULLABLE | ISO 8601 datetime |
-| `estimated_minutes` | INTEGER | NOT NULL | Rough duration |
+| `notes` | TEXT | NOT NULL for new or edited tasks | Goal details and useful context |
+| `deadline` | TEXT | NOT NULL for new or edited tasks | ISO 8601 datetime for the goal |
+| `estimated_minutes` | INTEGER | NOT NULL | Daily time commitment in minutes |
 | `energy_cost` | TEXT | CHECK (low/medium/high) | Mental or physical load |
 | `importance` | INTEGER | CHECK (1–5) | Subjective priority |
+| `progress` | INTEGER | 0–100 | Percent complete; 100% completes the task |
 | `created_at` | TEXT | DEFAULT now | Timestamp |
 | `completed_at` | TEXT | NULLABLE | Set when marked done |
 
@@ -296,14 +310,14 @@ The model is also constrained at the sampler level via Ollama's `format: "json"`
 
 My friend's task list contains her exam schedule, placement prep, and personal goals. A closed API would mean shipping that to a server, paying per call, and trusting a vendor's logs.
 
-Running Gemma locally via Ollama means:
+Running Gemma locally via Ollama means task details and model prompts stay on the machine. If a task note contains a public HTTP(S) link, the app makes a bounded request to that site and passes the extracted page text to local Ollama; it does not send the task notes to the linked site.
 
-- **Nothing leaves her laptop.**
+- **No task details are sent to a cloud AI service.**
 - **No API bills. No rate limits.**
 - **Full auditability.** Every prompt is in the repo.
 - **Model swappability.** When a better open model ships, she changes one env var.
 
-The app is a wrapper around a tool she owns, not a subscription she rents.
+Only public pages on standard HTTP(S) ports are read. URL reading is limited to four links per suggestion, follows only a few redirects, and caps page size and extracted text. The linked site will receive the normal page request and can observe its URL and the network address of the app host.
 
 ---
 
@@ -328,7 +342,7 @@ Building **What Now?** taught me:
 
 2. **`format: "json"` is the single highest-leverage line in the codebase.** Before using Ollama's JSON mode, the model wrapped responses in markdown fences 1 in 5 times. After, zero across hundreds of calls.
 
-3. **Out-of-band swaps are HTMX's best-kept secret.** Updating three UI regions with one HTTP response — the action card, the task list, and the stats line — felt like cheating coming from a React background.
+3. **Keeping the server-rendered dashboard in place** gives the task list, suggestion, and stats one consistent update without a separate frontend build.
 
 4. **Local inference has real costs.** First call after a cold start takes 5–15 seconds while the model loads into memory. Subsequent calls are 2–4 seconds. This shaped the entire UX: the check-in button disables itself, a "Thinking..." indicator appears, and users can't double-submit.
 

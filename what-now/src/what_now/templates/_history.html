@@ -10,7 +10,9 @@
       <span class="history-meta">
         {{ item.task_title or "Independent action" }} · {{ item.created_at[:16] | replace("T", " ") }}
         {% if item.outcome %} · {{ item.outcome }}{% else %} · awaiting check-in{% endif %}
+        {% if item.progress_after is not none %} · {{ item.progress_before }}% → {{ item.progress_after }}%{% endif %}
       </span>
+      {% if item.feedback_note %}<span class="history-note">{{ item.feedback_note }}</span>{% endif %}
     </div>
   </li>
   {% endfor %}

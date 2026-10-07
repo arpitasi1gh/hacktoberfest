@@ -23,6 +23,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     estimated_minutes INTEGER NOT NULL,
     energy_cost TEXT NOT NULL CHECK (energy_cost IN ('low', 'medium', 'high')),
     importance INTEGER NOT NULL CHECK (importance BETWEEN 1 AND 5),
+    progress INTEGER NOT NULL DEFAULT 0 CHECK (progress BETWEEN 0 AND 100),
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     completed_at TEXT
 );
@@ -38,6 +39,9 @@ CREATE TABLE IF NOT EXISTS actions (
     timebox_minutes INTEGER NOT NULL,
     fallback TEXT NOT NULL,
     outcome TEXT CHECK (outcome IN ('done', 'skip', 'blocked')),
+    feedback_note TEXT,
+    progress_before INTEGER,
+    progress_after INTEGER,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 """
@@ -104,6 +108,12 @@ def init_db() -> None:
         _add_column_if_missing(
             connection,
             "tasks",
+            "progress",
+            "INTEGER NOT NULL DEFAULT 0 CHECK (progress BETWEEN 0 AND 100)",
+        )
+        _add_column_if_missing(
+            connection,
+            "tasks",
             "user_id",
             "INTEGER REFERENCES users(id) ON DELETE CASCADE",
         )
@@ -114,6 +124,13 @@ def init_db() -> None:
             "INTEGER REFERENCES users(id) ON DELETE CASCADE",
         )
         _add_column_if_missing(connection, "actions", "task_title", "TEXT")
+        _add_column_if_missing(connection, "actions", "feedback_note", "TEXT")
+        _add_column_if_missing(connection, "actions", "progress_before", "INTEGER")
+        _add_column_if_missing(connection, "actions", "progress_after", "INTEGER")
+        connection.execute(
+            "UPDATE tasks SET progress = 100 "
+            "WHERE completed_at IS NOT NULL AND progress = 0"
+        )
         connection.execute(
             "CREATE INDEX IF NOT EXISTS idx_tasks_user_active "
             "ON tasks(user_id, completed_at, deadline)"
@@ -226,9 +243,9 @@ def get_task(user_id: int, task_id: int) -> dict | None:
 def add_task(
     user_id: int,
     title: str,
-    notes: str | None,
-    deadline: str | None,
-    estimated_minutes: int,
+    notes: str,
+    deadline: str,
+    daily_minutes: int,
     energy_cost: str,
     importance: int,
 ) -> int:
@@ -237,7 +254,7 @@ def add_task(
             """INSERT INTO tasks
                (user_id, title, notes, deadline, estimated_minutes, energy_cost, importance)
                VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (user_id, title, notes, deadline, estimated_minutes, energy_cost, importance),
+               (user_id, title, notes, deadline, daily_minutes, energy_cost, importance),
         )
         return int(cursor.lastrowid)
 
@@ -246,25 +263,32 @@ def update_task(
     user_id: int,
     task_id: int,
     title: str,
-    notes: str | None,
-    deadline: str | None,
-    estimated_minutes: int,
+    notes: str,
+    deadline: str,
+    daily_minutes: int,
     energy_cost: str,
     importance: int,
+    progress: int,
 ) -> bool:
     with get_connection() as connection:
         cursor = connection.execute(
             """UPDATE tasks
                SET title = ?, notes = ?, deadline = ?, estimated_minutes = ?,
-                   energy_cost = ?, importance = ?
+                   energy_cost = ?, importance = ?, progress = ?,
+                   completed_at = CASE
+                       WHEN ? = 100 THEN COALESCE(completed_at, datetime('now'))
+                       ELSE NULL
+                   END
                WHERE id = ? AND user_id = ?""",
             (
                 title,
                 notes,
                 deadline,
-                estimated_minutes,
+                daily_minutes,
                 energy_cost,
                 importance,
+                progress,
+                progress,
                 task_id,
                 user_id,
             ),
@@ -273,13 +297,20 @@ def update_task(
 
 
 def set_task_completed(user_id: int, task_id: int, completed: bool) -> bool:
-    completed_at = "datetime('now')" if completed else "NULL"
     with get_connection() as connection:
-        cursor = connection.execute(
-            f"UPDATE tasks SET completed_at = {completed_at} "
-            "WHERE id = ? AND user_id = ?",
-            (task_id, user_id),
-        )
+        if completed:
+            cursor = connection.execute(
+                """UPDATE tasks SET completed_at = datetime('now')
+                   WHERE id = ? AND user_id = ? AND progress = 100""",
+                (task_id, user_id),
+            )
+        else:
+            cursor = connection.execute(
+                """UPDATE tasks SET completed_at = NULL,
+                   progress = CASE WHEN progress = 100 THEN 99 ELSE progress END
+                   WHERE id = ? AND user_id = ?""",
+                (task_id, user_id),
+            )
     return cursor.rowcount > 0
 
 
@@ -297,23 +328,49 @@ def record_action_outcome(
     task_id: int | None,
     action: dict,
     outcome: str,
-) -> int:
+    feedback_note: str | None = None,
+    progress_after: int | None = None,
+) -> int | None:
     with get_connection() as connection:
         task = (
             connection.execute(
-                "SELECT title FROM tasks WHERE id = ? AND user_id = ?",
+                "SELECT title, progress FROM tasks WHERE id = ? AND user_id = ?",
                 (task_id, user_id),
             ).fetchone()
             if task_id is not None
             else None
         )
+        progress_before = task["progress"] if task else action.get("progress")
+        if task is not None and outcome == "done":
+            if progress_after is None or not progress_before < progress_after <= 100:
+                return None
+            connection.execute(
+                """UPDATE tasks SET progress = ?,
+                   completed_at = CASE
+                       WHEN ? = 100 THEN datetime('now')
+                       ELSE NULL
+                   END
+                   WHERE id = ? AND user_id = ?""",
+                (progress_after, progress_after, task_id, user_id),
+            )
+        elif task_id is not None and task is None and outcome == "done":
+            if (
+                not isinstance(progress_before, int)
+                or progress_after is None
+                or not progress_before < progress_after <= 100
+            ):
+                return None
+        elif task is not None:
+            progress_after = progress_before
+
         if task is None:
             task_id = None
         cursor = connection.execute(
             """INSERT INTO actions
                (user_id, task_id, task_title, action, why, first_step,
-                timebox_minutes, fallback, outcome)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                timebox_minutes, fallback, outcome, feedback_note,
+                progress_before, progress_after)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 user_id,
                 task_id,
@@ -324,6 +381,9 @@ def record_action_outcome(
                 action["timebox_minutes"],
                 action["fallback"],
                 outcome,
+                feedback_note,
+                progress_before,
+                progress_after,
             ),
         )
         return int(cursor.lastrowid)
@@ -332,7 +392,8 @@ def record_action_outcome(
 def list_recent_suggestions(user_id: int, limit: int = 5) -> list[dict]:
     with get_connection() as connection:
         rows = connection.execute(
-            """SELECT task_title, action, why, first_step, timebox_minutes, fallback
+            """SELECT task_title, action, why, first_step, timebox_minutes, fallback,
+                      outcome, feedback_note, progress_before, progress_after
                FROM actions
                WHERE user_id = ? AND outcome IS NOT NULL
                ORDER BY id DESC
@@ -357,13 +418,19 @@ def get_progress_stats(user_id: int) -> dict:
               (SELECT COUNT(*) FROM actions
                WHERE user_id = ? AND outcome = 'blocked'
                  AND date(created_at, 'localtime') = date('now', 'localtime')) AS blocked_today,
-              (SELECT COUNT(*) FROM tasks
-               WHERE user_id = ? AND completed_at IS NOT NULL
-                 AND date(completed_at, 'localtime') = date('now', 'localtime'))
-              +
               (SELECT COUNT(*) FROM actions
-               WHERE user_id = ? AND outcome = 'done' AND task_id IS NULL
-                 AND date(created_at, 'localtime') = date('now', 'localtime')) AS done_today
+               WHERE user_id = ? AND outcome = 'done'
+                 AND date(created_at, 'localtime') = date('now', 'localtime'))
+              +
+              (SELECT COUNT(*) FROM tasks t
+               WHERE t.user_id = ? AND t.completed_at IS NOT NULL
+                 AND date(t.completed_at, 'localtime') = date('now', 'localtime')
+                 AND NOT EXISTS (
+                   SELECT 1 FROM actions a
+                   WHERE a.task_id = t.id AND a.user_id = t.user_id
+                     AND a.outcome = 'done'
+                     AND date(a.created_at, 'localtime') = date('now', 'localtime')
+                 )) AS done_today
             """,
             (user_id, user_id, user_id, user_id, user_id, user_id),
         ).fetchone()
@@ -381,6 +448,7 @@ def list_recent_actions(user_id: int, limit: int = 20) -> list[dict]:
         rows = connection.execute(
             """
             SELECT a.id, a.action, a.outcome, a.created_at,
+                   a.feedback_note, a.progress_before, a.progress_after,
                    COALESCE(a.task_title, t.title) AS task_title
             FROM actions a
             LEFT JOIN tasks t ON t.id = a.task_id

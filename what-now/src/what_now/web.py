@@ -37,3 +37,7 @@ def render_fragment(
     values.setdefault("theme", request.session.get("theme", "light"))
     values.setdefault("csrf_token", csrf_token(request))
     return templates.get_template(template_name).render(request=request, **values)
+
+
+def is_async_request(request: Request) -> bool:
+    return request.headers.get("X-Requested-With") == "fetch"

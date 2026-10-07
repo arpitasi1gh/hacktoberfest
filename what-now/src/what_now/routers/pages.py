@@ -21,18 +21,40 @@ def dashboard_context(user: dict, pending_action: dict | None = None) -> dict:
     return context
 
 
-@router.get("/")
-def dashboard(request: Request, user: dict = Depends(require_user)):
+def render_dashboard(request: Request, user: dict, status_code: int = 200):
     pending_action = request.session.get("pending_action")
     if not isinstance(pending_action, dict):
         pending_action = None
-    return render(request, "index.html", dashboard_context(user, pending_action))
+    elif isinstance(pending_action.get("task_id"), int):
+        task = db.get_task(user["id"], pending_action["task_id"])
+        if task is None:
+            pending_action = {**pending_action, "task_id": None, "progress": None}
+        else:
+            pending_action = {**pending_action, "progress": task["progress"]}
+        request.session["pending_action"] = pending_action
+    return render(
+        request,
+        "index.html",
+        dashboard_context(user, pending_action),
+        status_code=status_code,
+    )
+
+
+@router.get("/")
+def dashboard(request: Request, user: dict = Depends(require_user)):
+    return render_dashboard(request, user)
 
 
 @router.post("/theme", dependencies=[Depends(verify_csrf)])
 def toggle_theme(request: Request):
     current_theme = request.session.get("theme", "light")
     request.session["theme"] = "dark" if current_theme != "dark" else "light"
+    if request.headers.get("X-Requested-With") == "fetch":
+        if request.session.get("user_id"):
+            user = db.get_user_by_id(request.session["user_id"])
+            if user is not None:
+                return render_dashboard(request, user)
+        return render(request, "auth.html", {"auth_mode": "login"})
     destination = "/" if request.session.get("user_id") else "/login"
     return RedirectResponse(destination, status_code=303)
 
@@ -43,4 +65,7 @@ def toggle_theme(request: Request):
 )
 def delete_history(request: Request, user: dict = Depends(require_user)):
     db.delete_all_history(user["id"])
+    request.session.pop("pending_action", None)
+    if request.headers.get("X-Requested-With") == "fetch":
+        return render_dashboard(request, user)
     return RedirectResponse("/#history", status_code=303)

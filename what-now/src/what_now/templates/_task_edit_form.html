@@ -1,26 +1,28 @@
-<form action="/tasks/{{ task.id }}/edit" method="post" class="form-stack task-form task-edit-form" hidden>
+<form action="/tasks/{{ task.id }}/edit" method="post" class="form-stack task-form task-edit-form" data-async-form hidden>
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
   <div class="field">
     <label for="title-{{ task.id }}">Title</label>
     <input type="text" id="title-{{ task.id }}" name="title" maxlength="200" value="{{ task.title }}" required>
   </div>
   <div class="field">
-    <label for="notes-{{ task.id }}">Notes <span class="field-hint">optional</span></label>
-    <textarea id="notes-{{ task.id }}" name="notes" rows="3" maxlength="2000">{{ task.notes or '' }}</textarea>
+    <label for="notes-{{ task.id }}">Notes</label>
+    <textarea id="notes-{{ task.id }}" name="notes" rows="3" maxlength="2000" required>{{ task.notes or '' }}</textarea>
   </div>
-  <div class="form-grid">
+  <div class="task-edit-deadline-grid">
     <div class="field">
       <label for="deadline-{{ task.id }}">Deadline</label>
-      <input type="datetime-local" id="deadline-{{ task.id }}" name="deadline" value="{{ task.deadline or '' }}">
+      <input type="datetime-local" id="deadline-{{ task.id }}" name="deadline" value="{{ task.deadline or '' }}" required>
     </div>
     <div class="field">
-      <label for="estimated-{{ task.id }}">Estimated time</label>
+      <label for="daily-minutes-{{ task.id }}">Daily time commitment</label>
       <div class="input-suffix">
-        <input type="number" id="estimated-{{ task.id }}" name="estimated_minutes" min="5" max="600"
+        <input type="number" id="daily-minutes-{{ task.id }}" name="daily_minutes" min="5" max="600"
                value="{{ task.estimated_minutes }}" required>
-        <span>minutes</span>
+        <span>min/day</span>
       </div>
     </div>
+  </div>
+  <div class="task-edit-priority-grid">
     <div class="field">
       <label for="energy-cost-{{ task.id }}">Energy cost</label>
       <select id="energy-cost-{{ task.id }}" name="energy_cost">
@@ -39,6 +41,14 @@
         {% endfor %}
       </select>
     </div>
+  </div>
+  <div class="field task-progress-edit-field">
+    <label for="progress-{{ task.id }}">Progress <output for="progress-{{ task.id }}">{{ task.progress }}%</output></label>
+    <div class="task-progress-edit">
+      <input type="range" id="progress-{{ task.id }}" name="progress" min="0" max="100"
+             value="{{ task.progress }}" data-task-progress-slider required>
+    </div>
+    <span class="field-hint">The task is marked complete at 100%.</span>
   </div>
   <div class="task-edit-actions">
     <button class="button button-save-task" type="submit">Save changes</button>

@@ -36,7 +36,7 @@
       <a class="nav-button" href="/login">Log in</a>
       <a class="nav-button nav-button-accent" href="/signup">Sign up</a>
       {% endif %}
-      <form action="/theme" method="post">
+      <form action="/theme" method="post" data-async-form>
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <button class="theme-toggle" type="submit" aria-label="Switch to {{ 'light' if theme == 'dark' else 'dark' }} mode">
           <span aria-hidden="true">{{ "☀" if theme == "dark" else "☾" }}</span>
@@ -50,10 +50,78 @@
     {% block content %}{% endblock %}
   </main>
   <script>
-    document.querySelectorAll("[data-confirm]").forEach((form) => {
-      form.addEventListener("submit", (event) => {
-        if (!window.confirm(form.dataset.confirm)) event.preventDefault();
-      });
+    document.addEventListener("submit", (event) => {
+      const form = event.target.closest("[data-confirm]");
+      if (form && !window.confirm(form.dataset.confirm)) event.preventDefault();
+    });
+
+    document.addEventListener("submit", async (event) => {
+      const form = event.target.closest("[data-async-form]");
+      if (!form || event.defaultPrevented) return;
+      event.preventDefault();
+
+      const submitButton = event.submitter || form.querySelector('[type="submit"]');
+      const loadingLabel = submitButton?.querySelector(".checkin-submit-label");
+      const originalLabel = loadingLabel?.textContent;
+      if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.setAttribute("aria-busy", "true");
+      }
+      const loadingIcon = submitButton?.querySelector(".checkin-submit-icon");
+      const spinner = submitButton?.querySelector(".checkin-spinner");
+      if (loadingLabel) loadingLabel.textContent = "Finding your next step…";
+      if (loadingIcon) loadingIcon.hidden = true;
+      if (spinner) spinner.hidden = false;
+
+      try {
+        const response = await fetch(form.action, {
+          method: form.method || "POST",
+          body: new FormData(form),
+          headers: { "X-Requested-With": "fetch" },
+        });
+        const html = await response.text();
+        const updatedPage = new DOMParser().parseFromString(html, "text/html");
+        const updatedMain = updatedPage.querySelector(".page-shell");
+        const currentMain = document.querySelector(".page-shell");
+
+        if (response.redirected && updatedMain) {
+          window.location.assign(response.url);
+          return;
+        }
+        if (updatedMain && currentMain && response.headers.get("content-type")?.includes("text/html")) {
+          currentMain.innerHTML = updatedMain.innerHTML;
+          document.documentElement.dataset.theme =
+            updatedPage.documentElement.dataset.theme || document.documentElement.dataset.theme;
+          if (form.action.endsWith("/theme")) {
+            const updatedTopbar = updatedPage.querySelector(".topbar");
+            const currentTopbar = document.querySelector(".topbar");
+            if (updatedTopbar && currentTopbar) {
+              currentTopbar.innerHTML = updatedTopbar.innerHTML;
+            }
+          }
+          if (!response.ok) {
+            const error = currentMain.querySelector('[role="alert"]');
+            if (error) error.focus();
+          }
+          return;
+        }
+        if (!response.ok) {
+          const detail = JSON.parse(html).detail;
+          throw new Error(detail || `The request failed (${response.status}).`);
+        }
+        throw new Error("The page could not be updated. Reload and try again.");
+      } catch (error) {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.removeAttribute("aria-busy");
+          if (loadingLabel && originalLabel !== null) {
+            loadingLabel.textContent = originalLabel;
+          }
+        }
+        if (loadingIcon) loadingIcon.hidden = false;
+        if (spinner) spinner.hidden = true;
+        window.alert(error instanceof Error ? error.message : "The request failed.");
+      }
     });
   </script>
 </body>
