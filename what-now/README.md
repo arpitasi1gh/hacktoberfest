@@ -2,7 +2,7 @@
 
 > A local-first AI assistant that turns your energy, available time, and task list into **one concrete next action**. No cloud, no API keys, no data leaving your laptop.
 
-🔗 **Repo:** [https://github.com/arpitasi1gh/what-now](https://github.com/arpitasi1gh/what-now)  
+🔗 **Repo:** [https://github.com/arpitasi1gh/hacktoberfest/tree/main/what-now](https://github.com/arpitasi1gh/hacktoberfest/tree/main/what-now) 
 📝 **DEV Post:** [Hacktoberfest Weekend Challenge Submission](https://dev.to/arpitasi1gh/what-now-a-local-first-ai-next-action-coach-for-a-tired-college-student-2ec6)
 
 ![Status](https://img.shields.io/badge/Status-Working-brightgreen?style=for-the-badge)
