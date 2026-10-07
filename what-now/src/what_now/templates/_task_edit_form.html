@@ -1,0 +1,47 @@
+<form action="/tasks/{{ task.id }}/edit" method="post" class="form-stack task-form task-edit-form" hidden>
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <div class="field">
+    <label for="title-{{ task.id }}">Title</label>
+    <input type="text" id="title-{{ task.id }}" name="title" maxlength="200" value="{{ task.title }}" required>
+  </div>
+  <div class="field">
+    <label for="notes-{{ task.id }}">Notes <span class="field-hint">optional</span></label>
+    <textarea id="notes-{{ task.id }}" name="notes" rows="3" maxlength="2000">{{ task.notes or '' }}</textarea>
+  </div>
+  <div class="form-grid">
+    <div class="field">
+      <label for="deadline-{{ task.id }}">Deadline</label>
+      <input type="datetime-local" id="deadline-{{ task.id }}" name="deadline" value="{{ task.deadline or '' }}">
+    </div>
+    <div class="field">
+      <label for="estimated-{{ task.id }}">Estimated time</label>
+      <div class="input-suffix">
+        <input type="number" id="estimated-{{ task.id }}" name="estimated_minutes" min="5" max="600"
+               value="{{ task.estimated_minutes }}" required>
+        <span>minutes</span>
+      </div>
+    </div>
+    <div class="field">
+      <label for="energy-cost-{{ task.id }}">Energy cost</label>
+      <select id="energy-cost-{{ task.id }}" name="energy_cost">
+        <option value="low" {{ "selected" if task.energy_cost == "low" else "" }}>Low</option>
+        <option value="medium" {{ "selected" if task.energy_cost == "medium" else "" }}>Medium</option>
+        <option value="high" {{ "selected" if task.energy_cost == "high" else "" }}>High</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="importance-{{ task.id }}">Importance</label>
+      <select id="importance-{{ task.id }}" name="importance">
+        {% for level in range(1, 6) %}
+        <option value="{{ level }}" {{ "selected" if task.importance == level else "" }}>
+          {{ level }}{{ " · highest" if level == 5 else " · important" if level == 3 else "" }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+  </div>
+  <div class="task-edit-actions">
+    <button class="button button-save-task" type="submit">Save changes</button>
+    <button class="button button-quiet" type="button" data-task-edit-cancel>Cancel</button>
+  </div>
+</form>

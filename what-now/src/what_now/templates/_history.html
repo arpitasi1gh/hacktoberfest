@@ -1,0 +1,20 @@
+{% if actions %}
+<ul class="history-list">
+  {% for item in actions %}
+  <li class="history-item">
+    <span class="history-icon outcome-{{ item.outcome or 'pending' }}" aria-hidden="true">
+      {{ "✓" if item.outcome == "done" else "↗" if item.outcome == "skip" else "!" if item.outcome == "blocked" else "·" }}
+    </span>
+    <div class="history-info">
+      <span class="history-text">{{ item.action }}</span>
+      <span class="history-meta">
+        {{ item.task_title or "Independent action" }} · {{ item.created_at[:16] | replace("T", " ") }}
+        {% if item.outcome %} · {{ item.outcome }}{% else %} · awaiting check-in{% endif %}
+      </span>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty-state">Your small wins and next steps will show up here.</p>
+{% endif %}

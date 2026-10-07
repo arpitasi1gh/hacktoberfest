@@ -1,0 +1,40 @@
+<section class="action-card" aria-labelledby="suggestion-title" aria-live="polite">
+  <div class="action-kicker"><span class="sparkle" aria-hidden="true">✦</span> YOUR NEXT STEP</div>
+  <div class="action-main">
+    <span class="action-label">Focus on this</span>
+    <h2 id="suggestion-title">{{ action.action }}</h2>
+  </div>
+  <p class="action-why">{{ action.why }}</p>
+  <div class="action-detail">
+    <span class="detail-label">Start here</span>
+    <p>{{ action.first_step }}</p>
+  </div>
+  <div class="action-support">
+    <span class="timebox">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"></circle><path d="M12 7v5l3 2"></path></svg>
+      <span>{{ action.timebox_minutes }} min</span>
+    </span>
+    <p class="fallback"><span>If you need a smaller step</span><span>{{ action.fallback }}</span></p>
+  </div>
+  {% if action.outcome %}
+  <p class="recorded-outcome">You marked this one {{ action.outcome }}.</p>
+  {% else %}
+  <div class="feedback-actions" aria-label="How did it go?">
+    <form action="/feedback" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="outcome" value="done">
+      <button class="button button-primary" type="submit">I did it</button>
+    </form>
+    <form action="/feedback" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="outcome" value="skip">
+      <button class="button button-secondary" type="submit">Not now</button>
+    </form>
+    <form action="/feedback" method="post">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <input type="hidden" name="outcome" value="blocked">
+      <button class="button button-tertiary" type="submit">I’m stuck</button>
+    </form>
+  </div>
+  {% endif %}
+</section>

@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block title %}Your next step · What Now?{% endblock %}
+{% block content %}
+<header class="page-heading">
+  <div>
+    <span class="eyebrow">
+      <span data-greeting-text data-name="{{ user.full_name }}">Hey, {{ user.full_name }}!</span>
+      <span class="greeting-caret" aria-hidden="true"></span>
+    </span>
+    <h1>Your next step</h1>
+    <p>Pick a task. We’ll help you get started.</p>
+  </div>
+</header>
+
+{% if error %}<p class="notice notice-error" role="alert">{{ error }}</p>{% endif %}
+{% if message %}<p class="notice notice-success" role="status">{{ message }}</p>{% endif %}
+
+{% if action %}
+  {% include "_action_card.html" %}
+{% endif %}
+
+<section class="card checkin-card" aria-labelledby="checkin-title">
+  <div class="checkin-heading">
+    <span class="checkin-kicker">A quick check-in</span>
+    <h2 id="checkin-title">Where are you right now?</h2>
+    <p>We’ll match a task to your energy and available time.</p>
+  </div>
+  <form action="/checkin" method="post" class="form-stack checkin-form" data-loading-form>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="checkin-fields">
+      <div class="field">
+        <label for="energy">Your energy <span class="field-hint">1 = low · 5 = high</span></label>
+        <div class="range-row">
+          <span aria-hidden="true">Low</span>
+          <input type="range" id="energy" name="energy" min="1" max="5" value="3">
+          <span aria-hidden="true">High</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="minutes">Time you have</label>
+        <div class="input-suffix">
+          <input type="number" id="minutes" name="available_minutes" min="5" max="240" value="45" required>
+          <span>minutes</span>
+        </div>
+      </div>
+    </div>
+    <button class="button button-primary button-wide checkin-submit" type="submit" data-loading-button {% if action %}disabled aria-disabled="true" title="Respond to your current suggestion first"{% endif %}>
+      <span class="checkin-submit-icon" aria-hidden="true">✦</span>
+      <span class="checkin-submit-label">What should I do next?</span>
+      <span class="checkin-spinner" aria-hidden="true" hidden></span>
+    </button>
+  </form>
+  {% include "_stats.html" %}
+</section>
+
+{% include "_tasks_section.html" %}
+
+<details class="card add-task-card">
+  <summary>
+    <span class="add-icon" aria-hidden="true">
+      <svg viewBox="0 0 20 20" focusable="false"><path d="M10 4v12M4 10h12"></path></svg>
+    </span>
+    <span class="add-task-label">Add a task</span>
+    <span class="summary-hint">A small step starts here</span>
+  </summary>
+  <form action="/tasks" method="post" class="form-stack task-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <div class="field">
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title" maxlength="200" required placeholder="e.g. Finish biology lab outline">
+    </div>
+    <div class="field">
+      <label for="notes">Notes <span class="field-hint">optional</span></label>
+      <textarea id="notes" name="notes" rows="3" maxlength="2000" placeholder="Add a detail that will help you get started"></textarea>
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label for="deadline">Deadline</label>
+        <input type="datetime-local" id="deadline" name="deadline">
+      </div>
+      <div class="field">
+        <label for="estimated">Estimated time</label>
+        <div class="input-suffix">
+          <input type="number" id="estimated" name="estimated_minutes" min="5" max="600" value="60" required>
+          <span>minutes</span>
+        </div>
+      </div>
+      <div class="field">
+        <label for="energy-cost">Energy cost</label>
+        <select id="energy-cost" name="energy_cost">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="importance">Importance</label>
+        <select id="importance" name="importance">
+          <option value="1">1 · whenever</option>
+          <option value="2">2</option>
+          <option value="3" selected>3 · important</option>
+          <option value="4">4</option>
+          <option value="5">5 · highest</option>
+        </select>
+      </div>
+    </div>
+    <button class="button button-save-task" type="submit">Save task</button>
+  </form>
+</details>
+
+<details class="card history-card" id="history">
+  <summary class="history-summary">
+    <h2>Recent activity</h2>
+    <span class="count-pill">{{ actions | length }}</span>
+  </summary>
+  <div class="history-content">
+    {% include "_history.html" %}
+    {% if actions %}
+    <form class="history-clear" action="/history/delete" method="post" data-confirm="Clear all recent activity? This cannot be undone.">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button class="button button-quiet" type="submit">Clear history</button>
+    </form>
+    {% endif %}
+  </div>
+</details>
+<script>
+  const greeting = document.querySelector("[data-greeting-text]");
+  const greetingOptions = ["Hey", "Welcome", "Hello", "Nice to meet you", "Hola", "Hi"];
+
+  if (greeting && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const name = greeting.dataset.name;
+    let currentText = greeting.textContent;
+    let optionIndex = 1;
+
+    const rotateGreeting = () => {
+      const erase = () => {
+        if (currentText.length > 0) {
+          currentText = currentText.slice(0, -1);
+          greeting.textContent = currentText;
+          window.setTimeout(erase, 45);
+          return;
+        }
+
+        const nextGreeting = `${greetingOptions[optionIndex++ % greetingOptions.length]}, ${name}!`;
+        let character = 0;
+        const type = () => {
+          if (character < nextGreeting.length) {
+            character += 1;
+            currentText = nextGreeting.slice(0, character);
+            greeting.textContent = currentText;
+            window.setTimeout(type, 70);
+            return;
+          }
+          window.setTimeout(rotateGreeting, 2400);
+        };
+        type();
+      };
+      erase();
+    };
+
+    window.setTimeout(rotateGreeting, 2200);
+  }
+
+  document.querySelectorAll("[data-loading-form]").forEach((form) => {
+    form.addEventListener("submit", () => {
+      const button = form.querySelector("[data-loading-button]");
+      if (!button) return;
+
+      button.disabled = true;
+      button.setAttribute("aria-busy", "true");
+      button.querySelector(".checkin-submit-label").textContent = "Finding your next step…";
+      button.querySelector(".checkin-submit-icon").hidden = true;
+      button.querySelector(".checkin-spinner").hidden = false;
+    });
+  });
+
+  document.addEventListener("submit", async (event) => {
+    const form = event.target.closest("form[data-task-delete]");
+    if (!form) return;
+
+    event.preventDefault();
+    const button = form.querySelector("button");
+    button.disabled = true;
+
+    try {
+      const response = await fetch(form.action, {
+        method: "POST",
+        body: new FormData(form),
+        headers: { "X-Requested-With": "fetch" },
+      });
+      if (!response.ok) throw new Error(`Task deletion failed (${response.status}).`);
+
+      const updated = new DOMParser().parseFromString(await response.text(), "text/html");
+      const taskSection = document.querySelector("#tasks");
+      const progressStats = document.querySelector("#today-stats");
+      const updatedTaskSection = updated.querySelector("#tasks");
+      const updatedProgressStats = updated.querySelector("#today-stats");
+      if (!taskSection || !progressStats || !updatedTaskSection || !updatedProgressStats) {
+        throw new Error("Could not update the task list.");
+      }
+      taskSection.replaceWith(updatedTaskSection);
+      progressStats.replaceWith(updatedProgressStats);
+    } catch (error) {
+      button.disabled = false;
+      window.alert(error instanceof Error ? error.message : "Task deletion failed.");
+    }
+  });
+
+  document.addEventListener("click", (event) => {
+    const toggle = event.target.closest("[data-task-edit-toggle]");
+    const cancel = event.target.closest("[data-task-edit-cancel]");
+    const taskItem = (toggle || cancel)?.closest(".task-item");
+    if (!taskItem) return;
+
+    const editForm = taskItem.querySelector(".task-edit-form");
+    const actionButtons = taskItem.querySelectorAll("[data-task-row-action]");
+    if (toggle) {
+      editForm.hidden = !editForm.hidden;
+      toggle.setAttribute("aria-expanded", String(!editForm.hidden));
+      actionButtons.forEach((button) => { button.disabled = !editForm.hidden; });
+    } else if (cancel) {
+      editForm.reset();
+      editForm.hidden = true;
+      taskItem.querySelector("[data-task-edit-toggle]").setAttribute("aria-expanded", "false");
+      actionButtons.forEach((button) => { button.disabled = false; });
+    }
+  });
+</script>
+{% endblock %}

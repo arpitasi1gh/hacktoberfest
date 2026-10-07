@@ -1,0 +1,58 @@
+{% set active_tasks = tasks | rejectattr("completed_at") | list %}
+{% set completed_tasks = tasks | selectattr("completed_at") | list %}
+{% if active_tasks %}
+<ul class="task-items">
+  {% for task in active_tasks %}
+  <li class="task-item">
+    <div class="task-info">
+      <span class="task-title">{{ task.title }}</span>
+      {% if task.notes %}<span class="task-notes">{{ task.notes }}</span>{% endif %}
+      <span class="task-meta">
+        {% if task.deadline %}Due {{ task.deadline[:16] | replace("T", " ") }} · {% endif %}
+        {{ task.estimated_minutes }} min · {{ task.energy_cost }} energy · priority {{ task.importance }}/5
+      </span>
+    </div>
+    <div class="task-actions">
+      <form action="/tasks/{{ task.id }}/complete" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="icon-action" type="submit" data-task-row-action>Done</button>
+      </form>
+      <button class="icon-action" type="button" data-task-edit-toggle aria-expanded="false">Edit</button>
+      <form action="/tasks/{{ task.id }}/delete" method="post" data-task-delete>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="icon-action icon-danger" type="submit" data-task-row-action>Delete</button>
+      </form>
+    </div>
+    {% include "_task_edit_form.html" %}
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty-state">Nothing on your list yet. Add one small thing when you’re ready.</p>
+{% endif %}
+
+{% if completed_tasks %}
+<details class="completed-section">
+  <summary>Completed ({{ completed_tasks | length }})</summary>
+  <ul class="task-items completed-list">
+    {% for task in completed_tasks %}
+    <li class="task-item">
+      <div class="task-info">
+        <span class="task-title">{{ task.title }}</span>
+        {% if task.notes %}<span class="task-notes">{{ task.notes }}</span>{% endif %}
+      </div>
+      <div class="task-actions">
+        <form action="/tasks/{{ task.id }}/reopen" method="post">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="icon-action" type="submit">Reopen</button>
+        </form>
+        <form action="/tasks/{{ task.id }}/delete" method="post" data-task-delete>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+          <button class="icon-action icon-danger" type="submit">Delete</button>
+        </form>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</details>
+{% endif %}

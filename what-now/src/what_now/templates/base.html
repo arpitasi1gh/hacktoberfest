@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ theme }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#fff9f7">
+  <title>{% block title %}What Now?{% endblock %}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+  <nav class="topbar" aria-label="Main navigation">
+    <a class="brand" href="/" aria-label="What Now? home">
+      <span class="brand-mark" aria-hidden="true">✿</span>
+      <span>What Now?</span>
+    </a>
+    <div class="nav-actions">
+      {% if user %}
+      <details class="profile-menu">
+        <summary class="profile-trigger" aria-label="Account menu for {{ user.full_name }}">
+          <span class="profile-name">{{ user.full_name }}</span>
+          <span class="profile-avatar" aria-hidden="true">{{ user.full_name[:1] | upper }}</span>
+        </summary>
+        <div class="profile-dropdown">
+          <span class="profile-email" title="{{ user.email }}">{{ user.email or "Account" }}</span>
+          <form action="/logout" method="post" data-confirm="Log out of your account?">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <button class="profile-logout" type="submit">
+              <span>Log out</span>
+              <span aria-hidden="true">↗</span>
+            </button>
+          </form>
+        </div>
+      </details>
+      {% else %}
+      <a class="nav-button" href="/login">Log in</a>
+      <a class="nav-button nav-button-accent" href="/signup">Sign up</a>
+      {% endif %}
+      <form action="/theme" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="theme-toggle" type="submit" aria-label="Switch to {{ 'light' if theme == 'dark' else 'dark' }} mode">
+          <span aria-hidden="true">{{ "☀" if theme == "dark" else "☾" }}</span>
+          <span class="theme-toggle-label">{{ "Light" if theme == "dark" else "Dark" }} mode</span>
+        </button>
+      </form>
+    </div>
+  </nav>
+
+  <main class="page-shell">
+    {% block content %}{% endblock %}
+  </main>
+  <script>
+    document.querySelectorAll("[data-confirm]").forEach((form) => {
+      form.addEventListener("submit", (event) => {
+        if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+      });
+    });
+  </script>
+</body>
+</html>
