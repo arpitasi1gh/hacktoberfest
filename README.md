@@ -1,2 +1,1 @@
-# hacktoberfest
-This repository includes my open-source contributions for hacktoberfest 🌟
+# This repository includes my open-source contributions for hacktoberfest 🌟
