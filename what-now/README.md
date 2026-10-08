@@ -1,4 +1,4 @@
-# 🌿 What Now? – Local-First AI Next-Action Coach
+# ❀ What Now? – Local-First AI Next-Action Coach
 
 > A local-first AI assistant that turns your energy, available time, and task list into **one concrete next action**. No hosted AI, API keys, or cloud model calls.
 
