@@ -26,7 +26,7 @@
     <h2 id="checkin-title">Where are you right now?</h2>
     <p>We’ll match a task to your energy and available time.</p>
   </div>
-  <form action="/checkin" method="post" class="form-stack checkin-form" data-loading-form data-async-form>
+  <form action="/checkin" method="post" class="form-stack checkin-form" data-loading-form data-async-form data-ai-generation>
     <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
     <div class="checkin-fields">
       <div class="field">
@@ -48,7 +48,6 @@
     <button class="button button-primary button-wide checkin-submit" type="submit" data-loading-button>
       <span class="checkin-submit-icon" aria-hidden="true">✦</span>
       <span class="checkin-submit-label">What should I do next?</span>
-      <span class="checkin-spinner" aria-hidden="true" hidden></span>
     </button>
   </form>
   {% include "_stats.html" %}
@@ -185,29 +184,46 @@
     }
   });
 
+  const syncSuggestionProgress = (slider) => {
+    const progressOutput = document.querySelector("#suggestion-progress-value");
+    const progressInput = document.querySelector("[data-progress-submit]");
+    const doneButton = document.querySelector("[data-progress-done]");
+    if (!progressOutput || !progressInput || !doneButton) return;
+
+    const initialProgress = Number(slider.dataset.currentProgress || 0);
+    const requestedProgress = Number(slider.value);
+    const progress = Math.min(100, Math.max(initialProgress, requestedProgress));
+    if (progress !== requestedProgress) slider.value = String(progress);
+
+    const max = Number(slider.max) || 100;
+    const visualProgress = Math.min(100, Math.max(0, (progress / max) * 100));
+    slider.style.setProperty("--progress", `${visualProgress}%`);
+    progressOutput.value = `${progress}%`;
+    progressInput.value = String(progress);
+    doneButton.disabled = progress <= initialProgress;
+    doneButton.title = doneButton.disabled
+      ? "Move task progress forward first"
+      : "Save progress and mark this session done";
+  };
+
+  document.querySelectorAll("[data-progress-slider]").forEach(syncSuggestionProgress);
+
   document.addEventListener("input", (event) => {
     const slider = event.target;
+    if (!(slider instanceof HTMLInputElement)) return;
+
     if (slider.matches("[data-task-progress-slider]")) {
-      const output = slider.form.querySelector(`label[for="${slider.id}"] output`);
+      const output = slider.form?.querySelector(`label[for="${slider.id}"] output`);
       if (output) output.value = `${slider.value}%`;
-      slider.style.setProperty("--progress", `${slider.value}%`);
+      const min = Number(slider.min) || 0;
+      const max = Number(slider.max) || 100;
+      const value = Number(slider.value);
+      const visualProgress = max > min ? ((value - min) / (max - min)) * 100 : 0;
+      slider.style.setProperty("--progress", `${Math.min(100, Math.max(0, visualProgress))}%`);
       return;
     }
-    if (slider.matches("[data-progress-slider]")) {
-      const progressOutput = document.querySelector("#suggestion-progress-value");
-      const progressInput = document.querySelector("[data-progress-submit]");
-      const doneButton = document.querySelector("[data-progress-done]");
-      if (!progressOutput || !progressInput || !doneButton) return;
-      const progress = Number(slider.value);
-      const initialProgress = Number(slider.min);
-      slider.style.setProperty("--progress", `${progress}%`);
-      progressOutput.value = `${progress}%`;
-      progressInput.value = String(progress);
-      doneButton.disabled = progress <= initialProgress;
-      doneButton.title = doneButton.disabled
-        ? "Move task progress forward first"
-        : "Save progress and mark this session done";
-    }
+
+    if (slider.matches("[data-progress-slider]")) syncSuggestionProgress(slider);
   });
 </script>
 {% endblock %}

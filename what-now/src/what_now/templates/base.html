@@ -36,7 +36,7 @@
       <a class="nav-button" href="/login">Log in</a>
       <a class="nav-button nav-button-accent" href="/signup">Sign up</a>
       {% endif %}
-      <form action="/theme" method="post" data-async-form>
+      <form action="/theme" method="post" data-async-form data-theme-form>
         <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
         <button class="theme-toggle" type="submit" aria-label="Switch to {{ 'light' if theme == 'dark' else 'dark' }} mode">
           <span aria-hidden="true">{{ "☀" if theme == "dark" else "☾" }}</span>
@@ -49,30 +49,84 @@
   <main class="page-shell">
     {% block content %}{% endblock %}
   </main>
+  <div class="ai-busy-overlay" data-ai-busy-overlay hidden>
+    <div class="ai-busy-status" role="status" aria-live="polite" aria-atomic="true" aria-label="Generating your next step">
+      <span class="ai-busy-spinner" aria-hidden="true"></span>
+      <span>Finding your next step…</span>
+    </div>
+  </div>
   <script>
     document.addEventListener("submit", (event) => {
       const form = event.target.closest("[data-confirm]");
       if (form && !window.confirm(form.dataset.confirm)) event.preventDefault();
     });
 
+    const aiBusyOverlay = document.querySelector("[data-ai-busy-overlay]");
+
+    const syncProgressSliderAppearance = (scope = document) => {
+      scope.querySelectorAll("[data-task-progress-slider], [data-progress-slider]").forEach((slider) => {
+        const min = Number(slider.min || 0);
+        const max = Number(slider.max || 100);
+        const value = Number(slider.value || 0);
+        const progress = max > min ? ((value - min) / (max - min)) * 100 : 0;
+        slider.style.setProperty("--progress", `${Math.min(100, Math.max(0, progress))}%`);
+      });
+    };
+
+    syncProgressSliderAppearance();
+
+    const setAiGenerationState = (busy) => {
+      const root = document.documentElement;
+      const topbar = document.querySelector(".topbar");
+      const pageShell = document.querySelector(".page-shell");
+
+      if (busy) {
+        root.dataset.aiGeneration = "true";
+        root.setAttribute("aria-busy", "true");
+        topbar?.setAttribute("aria-busy", "true");
+        pageShell?.setAttribute("aria-busy", "true");
+        if (topbar) topbar.inert = true;
+        if (pageShell) pageShell.inert = true;
+        if (aiBusyOverlay) aiBusyOverlay.hidden = false;
+        return;
+      }
+
+      delete root.dataset.aiGeneration;
+      root.removeAttribute("aria-busy");
+      topbar?.removeAttribute("aria-busy");
+      pageShell?.removeAttribute("aria-busy");
+      if (topbar) topbar.inert = false;
+      if (pageShell) pageShell.inert = false;
+      if (aiBusyOverlay) aiBusyOverlay.hidden = true;
+    };
+
+    document.addEventListener("click", (event) => {
+      if (document.documentElement.dataset.aiGeneration !== "true") return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (target && target.closest("[data-ai-busy-overlay]")) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }, true);
+
     document.addEventListener("submit", async (event) => {
       const form = event.target.closest("[data-async-form]");
       if (!form || event.defaultPrevented) return;
+      if (document.documentElement.dataset.aiGeneration === "true") {
+        event.preventDefault();
+        return;
+      }
       event.preventDefault();
 
+      const isAiGenerationForm = form.hasAttribute("data-ai-generation");
       const submitButton = event.submitter || form.querySelector('[type="submit"]');
-      const loadingLabel = submitButton?.querySelector(".checkin-submit-label");
-      const originalLabel = loadingLabel?.textContent;
+      if (isAiGenerationForm) {
+        setAiGenerationState(true);
+      }
+
       if (submitButton) {
         submitButton.disabled = true;
         submitButton.setAttribute("aria-busy", "true");
       }
-      const loadingIcon = submitButton?.querySelector(".checkin-submit-icon");
-      const spinner = submitButton?.querySelector(".checkin-spinner");
-      if (loadingLabel) loadingLabel.textContent = "Finding your next step…";
-      if (loadingIcon) loadingIcon.hidden = true;
-      if (spinner) spinner.hidden = false;
-
       try {
         const response = await fetch(form.action, {
           method: form.method || "POST",
@@ -90,6 +144,7 @@
         }
         if (updatedMain && currentMain && response.headers.get("content-type")?.includes("text/html")) {
           currentMain.innerHTML = updatedMain.innerHTML;
+          syncProgressSliderAppearance(currentMain);
           document.documentElement.dataset.theme =
             updatedPage.documentElement.dataset.theme || document.documentElement.dataset.theme;
           if (form.action.endsWith("/theme")) {
@@ -106,7 +161,12 @@
           return;
         }
         if (!response.ok) {
-          const detail = JSON.parse(html).detail;
+          let detail = "The request failed.";
+          try {
+            detail = JSON.parse(html).detail || detail;
+          } catch (_) {
+            // Keep the generic error when the server did not return JSON.
+          }
           throw new Error(detail || `The request failed (${response.status}).`);
         }
         throw new Error("The page could not be updated. Reload and try again.");
@@ -114,13 +174,12 @@
         if (submitButton) {
           submitButton.disabled = false;
           submitButton.removeAttribute("aria-busy");
-          if (loadingLabel && originalLabel !== null) {
-            loadingLabel.textContent = originalLabel;
-          }
         }
-        if (loadingIcon) loadingIcon.hidden = false;
-        if (spinner) spinner.hidden = true;
         window.alert(error instanceof Error ? error.message : "The request failed.");
+      } finally {
+        if (isAiGenerationForm) {
+          setAiGenerationState(false);
+        }
       }
     });
   </script>

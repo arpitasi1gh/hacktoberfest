@@ -5,6 +5,7 @@
     <h2 id="suggestion-title">{{ action.action }}</h2>
   </div>
   <p class="action-why">{{ action.why }}</p>
+
   {% if action.source_references %}
   <aside class="action-sources" aria-label="Sources used for this suggestion">
     <span class="detail-label">Reference from your notes</span>
@@ -20,10 +21,12 @@
     {% endfor %}
   </aside>
   {% endif %}
+
   <div class="action-detail">
     <span class="detail-label">Start here</span>
     <p>{{ action.first_step }}</p>
   </div>
+
   <div class="action-support">
     <div class="timebox">
       <span class="timebox-label">Available time</span>
@@ -37,6 +40,7 @@
       <span class="fallback-text">{{ action.fallback }}</span>
     </div>
   </div>
+
   {% if action.task_id %}
   <div class="suggestion-progress">
     <div class="suggestion-progress-heading">
@@ -47,16 +51,19 @@
       <input
         type="range"
         id="suggestion-progress"
-        min="{{ action.progress }}"
+        min="0"
         max="100"
         value="{{ action.progress }}"
         data-progress-slider
+        data-current-progress="{{ action.progress }}"
+        aria-label="Task progress"
         aria-describedby="suggestion-progress-value"
       >
     </div>
     <span class="field-hint">Move progress forward to mark this session done. The task is complete at 100%.</span>
   </div>
   {% endif %}
+
   {% if action.outcome %}
   <p class="recorded-outcome">You marked this one {{ action.outcome }}.</p>
   {% else %}
@@ -67,6 +74,7 @@
       {% if action.task_id %}<input type="hidden" name="progress" value="{{ action.progress }}" data-progress-submit>{% endif %}
       <button class="button button-primary" type="submit" data-progress-done {% if action.task_id %}disabled title="Move task progress forward first"{% endif %}>I did it</button>
     </form>
+
     <form action="/feedback" method="post" class="feedback-secondary" data-async-form>
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <input type="hidden" name="outcome" value="skip">
@@ -74,6 +82,7 @@
       <textarea class="feedback-note" id="feedback-note-skip" name="feedback_note" maxlength="500" required placeholder="Add a short note"></textarea>
       <button class="button button-secondary" type="submit">Not now</button>
     </form>
+
     <form action="/feedback" method="post" class="feedback-secondary" data-async-form>
       <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
       <input type="hidden" name="outcome" value="blocked">

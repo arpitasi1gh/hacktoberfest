@@ -130,6 +130,83 @@ button, summary { cursor: pointer; }
 }
 
 .theme-toggle:hover, .nav-button:hover { transform: translateY(-1px); border-color: var(--accent); color: var(--accent); }
+
+.ai-busy-overlay {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(255, 249, 247, 0.66);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  cursor: wait;
+}
+
+.ai-busy-overlay[hidden] { display: none !important; }
+
+/* A non-interactive status panel, deliberately not styled as a button. */
+.ai-busy-status {
+  display: flex;
+  width: max-content;
+  max-width: min(100%, 28rem);
+  min-width: min(21rem, 100%);
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 1.15rem 1.4rem;
+  /* border: 1px solid var(--border); */
+  border-radius: 12px;
+  background: transparent;
+  /* box-shadow: var(--shadow); */
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: left;
+  pointer-events: none;
+  user-select: none;
+}
+
+.ai-busy-spinner {
+  display: inline-block;
+  width: 1.35rem;
+  height: 1.35rem;
+  min-width: 1.35rem;
+  flex: 0 0 1.35rem;
+  border: 3px solid var(--accent-soft);
+  border-top-color: var(--accent);
+  border-right-color: var(--accent);
+  border-radius: 50%;
+  animation: ai-busy-spin 700ms linear infinite;
+  will-change: transform;
+}
+
+@keyframes ai-busy-spin {
+  to { transform: rotate(360deg); }
+}
+html[data-ai-generation="true"] .topbar,
+html[data-ai-generation="true"] .page-shell {
+  user-select: none;
+}
+html[data-ai-generation="true"] .theme-toggle,
+html[data-ai-generation="true"] .nav-button,
+html[data-ai-generation="true"] .profile-trigger,
+html[data-ai-generation="true"] button,
+html[data-ai-generation="true"] summary {
+  cursor: not-allowed;
+}
+html[data-ai-generation="true"] .theme-toggle,
+html[data-ai-generation="true"] .nav-button,
+html[data-ai-generation="true"] .profile-trigger,
+html[data-ai-generation="true"] button {
+  opacity: 0.62;
+  filter: grayscale(0.35);
+  transform: none !important;
+}
+html[data-theme="dark"] .ai-busy-overlay { background: rgba(24, 22, 29, 0.68); }
 .nav-button-accent { background: var(--accent); color: #fff; border-color: transparent; }
 html[data-theme="dark"] .nav-button-accent { color: #271b23; }
 .nav-button-accent:hover { background: var(--accent-strong); color: #fff; }
@@ -190,23 +267,46 @@ html[data-theme="dark"] .nav-button-accent { color: #271b23; }
 .field-hint, .field small { color: var(--text-faint); font-size: 0.78rem; font-weight: 450; }
 .range-row { display: flex; align-items: center; gap: 0.75rem; color: var(--text-faint); font-size: 0.75rem; }
 .range-row input { flex: 1; accent-color: var(--accent); }
-.task-progress-edit input[type="range"], .suggestion-progress-control input[type="range"] {
+.task-progress-edit input[type="range"],
+.suggestion-progress-control input[type="range"] {
   --progress: 0%;
   display: block;
   width: 100%;
-  height: 0.55rem;
-  margin: 0.55rem 0;
+  min-width: 0;
+  height: 1.25rem;
+  margin: 0.45rem 0;
+  padding: 0;
   appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  border-radius: 0;
+  outline: none;
+  background: transparent;
+  color: var(--accent);
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.task-progress-edit input[type="range"]::-webkit-slider-runnable-track,
+.suggestion-progress-control input[type="range"]::-webkit-slider-runnable-track {
+  height: 0.5rem;
+  border: 0;
   border-radius: 999px;
   background: linear-gradient(to right, var(--accent) 0 var(--progress), var(--line) var(--progress) 100%);
-  cursor: pointer;
-  accent-color: var(--accent);
+}
+.task-progress-edit input[type="range"]::-moz-range-track,
+.suggestion-progress-control input[type="range"]::-moz-range-track {
+  height: 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--accent) 0 var(--progress), var(--line) var(--progress) 100%);
 }
 .task-progress-edit input[type="range"]::-webkit-slider-thumb,
 .suggestion-progress-control input[type="range"]::-webkit-slider-thumb {
   width: 1.1rem;
   height: 1.1rem;
+  margin-top: -0.3rem;
   appearance: none;
+  -webkit-appearance: none;
   border: 2px solid var(--surface);
   border-radius: 50%;
   background: var(--accent);
@@ -214,15 +314,21 @@ html[data-theme="dark"] .nav-button-accent { color: #271b23; }
 }
 .task-progress-edit input[type="range"]::-moz-range-thumb,
 .suggestion-progress-control input[type="range"]::-moz-range-thumb {
-  width: 0.8rem;
-  height: 0.8rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  box-sizing: border-box;
   border: 2px solid var(--surface);
   border-radius: 50%;
   background: var(--accent);
   box-shadow: 0 0 0 1px var(--accent);
 }
 .task-progress-edit input[type="range"]:focus-visible,
-.suggestion-progress-control input[type="range"]:focus-visible { outline: 3px solid var(--focus); outline-offset: 5px; }
+.suggestion-progress-control input[type="range"]:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 5px;
+}
+.suggestion-progress-control { width: 100%; min-width: 0; }
+.suggestion-progress { min-width: 0; }
 .input-suffix { position: relative; }
 .input-suffix input { padding-right: 4.8rem; }
 .input-suffix > span { position: absolute; top: 50%; right: 0.8rem; transform: translateY(-50%); color: var(--text-faint); font-size: 0.78rem; pointer-events: none; }
@@ -272,9 +378,8 @@ html[data-theme="dark"] .button-save-task:hover { background: #f0b8ce; }
 .button-quiet { background: transparent; color: var(--text-soft); }
 .button-wide { width: 100%; min-height: 46px; font-size: 0.94rem; }
 .checkin-submit { position: relative; gap: 0.55rem; margin-top: 0.2rem; }
-.checkin-submit:disabled { cursor: not-allowed; opacity: 0.58; filter: saturate(0.55); transform: none; }
-.checkin-spinner { width: 1rem; height: 1rem; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin 700ms linear infinite; }
-.checkin-spinner[hidden], .checkin-submit-icon[hidden] { display: none; }
+.checkin-submit:disabled { background: var(--accent-strong); }
+.checkin-submit-icon[hidden] { display: none; }
 .today-stats { display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; padding-top: 0.85rem; border-top: 1px solid var(--line); color: var(--text-soft); font-size: 0.84rem; }
 .today-stats strong { color: var(--text); }
 .stats-divider, .stats-label { color: var(--text-faint); }
@@ -428,6 +533,8 @@ html[data-theme="dark"] .button-save-task:hover { background: #f0b8ce; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  /* Keep the small progress indicator visibly rotating during a request. */
+  .ai-busy-spinner { animation-duration: 700ms !important; }
 }
 
 @media (max-width: 760px) {
