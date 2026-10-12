@@ -1,77 +1,39 @@
-"""SerpApi Google Maps wrapper for finding nearby places."""
+"""Find real places near a location using SerpApi's Google Maps engine."""
 
 import os
-from dotenv import load_dotenv
-from serpapi import GoogleSearch
 
+from dotenv import load_dotenv
 load_dotenv()
 
-SERPAPI_KEY = os.getenv("SERPAPI_API_KEY")
+import serpapi
 
-# Default location (set to your city coordinates)
-DEFAULT_LAT = 40.7455096
-DEFAULT_LNG = -74.0083012
+SERPAPI_KEY = os.getenv("SERPAPI_KEY", "")
 
 
-def find_places(
-    lat: float = DEFAULT_LAT,
-    lng: float = DEFAULT_LNG,
-    radius_zoom: str = "15z",
-) -> list[dict]:
-    """Find nearby parks and cafes within walking distance.
+def find_places(lat: float, lon: float, query: str = "cafes and parks", limit: int = 3):
+    """Search Google Maps for real places near coordinates.
 
-    Returns a list of dicts with title, address, rating, type.
+    Uses `ll` (GPS origin) instead of `location` — `location` requires a
+    companion zoom parameter and is rejected by SerpApi without one.
     """
     if not SERPAPI_KEY:
-        return _fallback_places()
+        raise RuntimeError("SERPAPI_KEY not set. Add it to your .env file.")
 
-    params = {
-        "api_key": SERPAPI_KEY,
+    client = serpapi.Client(api_key=SERPAPI_KEY)
+    results = client.search({
         "engine": "google_maps",
-        "q": "parks cafes near me",
-        "ll": f"@{lat},{lng},{radius_zoom}",
+        "q": query,
+        "ll": f"@{lat},{lon},14z",
         "type": "search",
-        "hl": "en",
-    }
+    })
 
-    try:
-        search = GoogleSearch(params)
-        results = search.get_dict()
-        local = results.get("local_results", [])
-
-        places = []
-        for item in local[:5]:
-            places.append({
-                "title": item.get("title", "Unknown"),
-                "address": item.get("address", ""),
-                "rating": item.get("rating", "N/A"),
-                "type": item.get("type", "place"),
-                "gps": item.get("gps_coordinates", {}),
-            })
-
-        if places:
-            return places
-    except Exception:
-        pass
-
-    return _fallback_places()
-
-
-def _fallback_places() -> list[dict]:
-    """Return plausible fallback places if the API fails."""
-    return [
-        {
-            "title": "Riverside Park",
-            "address": "0.8 km from you",
-            "rating": 4.6,
-            "type": "Park",
-            "gps": {},
-        },
-        {
-            "title": "The Corner Cafe",
-            "address": "1.2 km from you",
-            "rating": 4.4,
-            "type": "Cafe",
-            "gps": {},
-        },
-    ]
+    places = []
+    for r in results.get("local_results", [])[:limit]:
+        places.append({
+            "name": r.get("title", "a nearby place"),
+            "address": r.get("address"),
+            "rating": r.get("rating"),
+            "type": r.get("type", "place"),
+            "reviews": r.get("reviews"),
+        })
+    return places
