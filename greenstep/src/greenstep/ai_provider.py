@@ -1,70 +1,60 @@
-"""Talk to the local Ollama server and get one action back."""
+"""Inference provider: local Ollama or cloud Google AI Studio (Gemma)."""
 
 import json
+import os
 
 import httpx
+from dotenv import load_dotenv
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "gemma3:4b"
+load_dotenv()
 
-SYSTEM_PROMPT = """You are a direct, practical outdoor coach. You do not motivate. You do not suggest. You state one action.
+AI_PROVIDER = os.getenv("AI_PROVIDER", "local")
+
+# Local (Ollama)
+OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:4b")
+
+# Cloud (Google AI Studio)
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+GOOGLE_MODEL = os.getenv("GOOGLE_MODEL", "gemma-4-26b-a4b-it")
+GOOGLE_URL = (
+    f"https://generativelanguage.googleapis.com/v1beta/models/"
+    f"{GOOGLE_MODEL}:generateContent"
+)
+
+SYSTEM_PROMPT = """You are a direct, practical outdoor coach. You do not motivate. You state one action.
 
 Return ONLY a JSON object. No markdown fences. No text before or after.
 
 Exactly these five fields:
 {
-  "action": "One imperative sentence. Start with a verb. Name a specific place and a specific thing to do there.",
-  "why": "One sentence. Reference the weather or the mood. Plain words. No metaphors.",
-  "first_step": "The smallest first move. Under 2 minutes. Must be an action, not a decision.",
+  "action": "One imperative sentence. Start with a verb. Name the place and what to do there.",
+  "why": "One sentence. Reference the weather or mood. Plain words. No metaphors.",
+  "first_step": "What you do BEFORE leaving. Shoes, keys, water. Under 2 minutes.",
   "duration_minutes": 25,
-  "fallback": "A lower-effort alternative. Also specific."
+  "fallback": "A smaller OUTDOOR action. Never indoor."
 }
 
-Rules — read these carefully:
+Rules:
+1. NEVER use vague references. Not "a nearby trail", "the river". Be concrete enough to act on.
+2. NEVER make the user decide. Bad: "Choose a trail". Good: "Walk to the nearest cafe and order a filter coffee."
+3. NEVER use these words: might, could, perhaps, simply, just, opportunity, movement, wellness, mindful, conducive, stillness.
+4. duration_minutes between 10 and 45. Default 25.
+5. Tone: peer, not coach. No "let's", no exclamation marks.
+6. Do NOT repeat the input. Output the JSON object only.
+7. You are given "nearest_place" with a real name. Use it. Say "Walk to <name>".
+8. If "nearest_place" is null, describe a specific generic place type instead.
 
-1. NEVER use vague references. Not "a nearby trail", "the river", "your local park". If you do not know a place, say "the nearest cafe" or "the closest park gate". Keep it concrete enough to act on.
+Example of a GOOD response:
+{"action":"Walk to Tartinery and order a filter coffee, sit outside for 20 minutes.","why":"Mild weather and low energy — a short change of scene fits.","first_step":"Put on your shoes.","duration_minutes":25,"fallback":"Stand outside your building for 5 minutes."}
 
-2. NEVER make the user decide. Bad: "Choose a trail". Bad: "Find a coffee shop". Good: "Walk to the nearest cafe and order a filter coffee." The action is a command, not a menu.
-
-3. NEVER use these words: "might", "could", "perhaps", "simply", "just", "opportunity", "movement", "wellness", "mindful".
-
-4. Keep duration between 10 and 45 minutes. Default is 25.
-
-5. Tone: peer, not coach. No "let's", no exclamation marks, no "you got this".
-
-6. Do NOT repeat the input. Do NOT explain your reasoning. Output the JSON object only.
-
-7. You know the user's location and the current weather. Reference the location by name when suggesting where to go ("in Delhi", "near your place").
-
-8. Reference the location name in the "why" field when it helps ("in Delhi", "near your place").
-
-9. You are given "nearest_place" with a real name, type, and rating. You MUST use this place in the action. Say "Walk to <name>" or "Head to <name>". Do NOT invent a different place.
-
-10. If "nearest_place" is null, fall back to describing a generic place type — but still be specific about what to do there.
-
-Example of a good response:
-{
-  "action": "Walk to the nearest cafe and sit outside with a filter coffee for 20 minutes.",
-  "why": "Mild weather and a middling mood — a low-effort change of scene fits.",
-  "first_step": "Put on your shoes.",
-  "duration_minutes": 25,
-  "fallback": "Stand outside your building for 5 minutes."
-}
-
-Example of a bad response (do not do this):
-{
-  "action": "Consider taking a walk or finding a nice trail nearby.",
-  "why": "One sentence. Plain words. Reference weather or mood. Do NOT say 'conducive', 'opportunity', or 'stillness'.",
-  "first_step": "What you do BEFORE leaving. Shoes, keys, water. NOT the activity itself.",
-  "fallback": "A smaller OUTDOOR action. Never indoor. Example: 'Stand outside your door for 2 minutes.'",
-  "duration_minutes": 60,
-  "fallback": "Just relax."
-}
+Example of a BAD response (do NOT do this):
+{"action":"Consider taking a walk or finding a nice trail nearby.","why":"It's a pleasant opportunity for movement.","first_step":"Think about where to go.","duration_minutes":60,"fallback":"Just relax."}
 """
 
 
 async def write_action(sleep_hours, screen_hours, mood, location, weather_label, temperature_c, top_place=None):
-    """Send inputs + location + weather to Ollama, return a parsed action dict."""
+    """Return a parsed action dict. Local Ollama by default, cloud if AI_PROVIDER=api."""
     context = {
         "location": location,
         "weather": weather_label,
@@ -76,21 +66,12 @@ async def write_action(sleep_hours, screen_hours, mood, location, weather_label,
         "nearest_place": top_place,
     }
 
-    payload = {
-        "model": OLLAMA_MODEL,
-        "system": SYSTEM_PROMPT,
-        "prompt": json.dumps(context),
-        "stream": False,
-        "format": "json",
-        "options": {"temperature": 0.4},
-    }
+    if AI_PROVIDER == "api":
+        raw = await _call_google(context)
+    else:
+        raw = await _call_ollama(context)
 
-    async with httpx.AsyncClient(timeout=120.0) as client:
-        r = await client.post(OLLAMA_URL, json=payload)
-        r.raise_for_status()
-
-    raw = r.json()["response"]
-    parsed = json.loads(raw)
+    parsed = _parse_json(raw)
 
     return {
         "action": parsed.get("action", "Walk outside for 15 minutes."),
@@ -99,3 +80,80 @@ async def write_action(sleep_hours, screen_hours, mood, location, weather_label,
         "duration_minutes": parsed.get("duration_minutes", 25),
         "fallback": parsed.get("fallback", "Stand outside for 2 minutes."),
     }
+
+
+async def _call_ollama(context: dict) -> str:
+    payload = {
+        "model": OLLAMA_MODEL,
+        "system": SYSTEM_PROMPT,
+        "prompt": json.dumps(context),
+        "stream": False,
+        "format": "json",
+        "options": {"temperature": 0.4},
+    }
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        r = await client.post(OLLAMA_URL, json=payload)
+        r.raise_for_status()
+    return r.json()["response"]
+
+
+async def _call_google(context: dict) -> str:
+    if not GOOGLE_API_KEY:
+        raise RuntimeError("GOOGLE_API_KEY not set")
+
+    combined = (
+        SYSTEM_PROMPT
+        + "\n\nReturn ONLY valid JSON. No markdown fences.\n\nContext:\n"
+        + json.dumps(context, separators=(",", ":"))
+    )
+
+    payload = {
+        "contents": [{"role": "user", "parts": [{"text": combined}]}],
+        "generationConfig": {"temperature": 0.4},
+    }
+    headers = {
+        "x-goog-api-key": GOOGLE_API_KEY,
+        "Content-Type": "application/json",
+    }
+
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        r = await client.post(GOOGLE_URL, json=payload, headers=headers)
+
+    if r.status_code != 200:
+        raise RuntimeError(f"Google API {r.status_code}: {r.text[:200]}")
+
+    data = r.json()
+    try:
+        return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    except (KeyError, IndexError) as exc:
+        raise RuntimeError(f"Unexpected response shape: {json.dumps(data)[:300]}") from exc
+
+
+def _parse_json(raw: str) -> dict:
+    """Strip markdown fences and any preamble/trailing text before parsing."""
+    original = raw
+    raw = raw.strip()
+
+    if "```" in raw:
+        for part in raw.split("```"):
+            cleaned = part.strip()
+            if cleaned.startswith("json"):
+                cleaned = cleaned[4:].strip()
+            if cleaned.startswith("{"):
+                raw = cleaned
+                break
+
+    brace = raw.find("{")
+    if brace > 0:
+        raw = raw[brace:]
+
+    last = raw.rfind("}")
+    if last != -1 and last < len(raw) - 1:
+        raw = raw[: last + 1]
+
+    try:
+        return json.loads(raw)
+    except json.JSONDecodeError as exc:
+        print("=== RAW OUTPUT ===")
+        print(original)
+        raise RuntimeError(f"Invalid JSON. First 200 chars: {original[:200]!r}") from exc

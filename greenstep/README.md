@@ -1,17 +1,17 @@
-# 🌿 Greenstep – Passive Outdoor Habit Predictor
+# 🌿 Greenstep – Predict When to Go Outside
 
-> A full-stack AI application that predicts the **best window for you to go outside** based on your past behavior, finds a **real place nearby**, and writes a **specific action** — no forms, no queries, no friction.
+> A local-first AI app that answers one question: **when should you go outside today, and where?** You give it four numbers. It finds a real place near you and writes one specific action for that window.
 
 🔗 **Live Demo:** `https://greenstep.onrender.com` _(replace after deploy)_
 📊 **Repository:** `https://github.com/arpitasi1gh/greenstep`
 
 ![Status](https://img.shields.io/badge/Status-Hacktoberfest_Submission-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
-![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.13-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
-![TabPFN](https://img.shields.io/badge/TabPFN-Prior_Labs-7C3AED?style=for-the-badge)
-![SerpApi](https://img.shields.io/badge/SerpApi-Google_Maps-4285F4?style=for-the-badge&logo=googlemaps&logoColor=white)
+![Ollama](https://img.shields.io/badge/Ollama-Local_Inference-000000?style=for-the-badge)
 ![Gemma](https://img.shields.io/badge/Gemma-Google_AI-8E75B2?style=for-the-badge&logo=google&logoColor=white)
+![SerpApi](https://img.shields.io/badge/SerpApi-Google_Maps-4285F4?style=for-the-badge&logo=googlemaps&logoColor=white)
 ![Deployment](https://img.shields.io/badge/Deployment-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)
 
 ---
@@ -31,20 +31,20 @@
     </td>
     <td width="33%">
       <ul>
-        <li><a href="#-api-endpoints">📡 API Endpoints</a></li>
-        <li><a href="#-testing-locally">🧪 Testing Locally</a></li>
-        <li><a href="#%EF%B8%8F-system-design">🏗️ System Design</a></li>
-        <li><a href="#-data-schema">📊 Data Schema</a></li>
+        <li><a href="#-how-it-works">🧠 How It Works</a></li>
+        <li><a href="#-local-vs-cloud-ai">🔄 Local vs Cloud AI</a></li>
+        <li><a href="#-caching">⚡ Caching</a></li>
+        <li><a href="#-environment-variables">🔐 Environment Variables</a></li>
         <li><a href="#-deployment">🚀 Deployment</a></li>
       </ul>
     </td>
     <td width="33%">
       <ul>
-        <li><a href="#-environment-variables">🔐 Environment Variables</a></li>
         <li><a href="#-what-i-learned">📈 What I Learned</a></li>
         <li><a href="#%EF%B8%8F-future-improvements">🗺️ Future Improvements</a></li>
         <li><a href="#-connect-with-me">🤝 Connect With Me</a></li>
         <li><a href="#-license">📝 License</a></li>
+        <li><a href="#-show-your-support">⭐ Show Your Support</a></li>
       </ul>
     </td>
   </tr>
@@ -54,22 +54,24 @@
 
 ## 💡 The Problem I Solved
 
-Every "go outside" app asks the same question:
+Every "go outside" reminder tells you the same thing: take a break, get some air, go for a walk. The advice is correct and useless.
 
-> _"How much energy do you have? How many minutes? What do you want to do?"_
+You already know you should go outside. The problems are:
 
-And every time, the user has to **stop, think, and fill in a form** — which is exactly the friction that stops people from going outside in the first place.
+- **When?** Nothing tells you *this* is the moment.
+- **Where?** "A nearby park" isn't a place. A name and a distance is.
+- **What?** "Go for a walk" isn't an action. "Walk to Tartinery, order a filter coffee, sit outside for 20 minutes" is.
 
-**Greenstep flips this.**
+**Greenstep answers all three.** You give it four inputs — where you are, how much you slept, how much screen time you've had, and your mood. It:
 
-Instead of asking, it **predicts**. It reads your past behavior — sleep, screen time, mood, weather, when you actually went out — and predicts the window today when you're most likely to go outside. Then it finds a real park or cafe near you, and writes one specific action.
+1. Geocodes your location and fetches real weather
+2. Finds real cafes, parks, and walking spots from Google Maps
+3. Writes one specific, startable action with a first step and a fallback
 
-No form. No query. No decision fatigue.
+The whole thing is short and finishable. No streaks, no badges, no dashboard.
 
-**The differentiator:** This is a **passive prediction** app, not an active query app. Every "I did it" tap makes tomorrow's prediction smarter.
-
-> **What Now?** — user enters energy + minutes → AI suggests one task
-> **Greenstep** — app reads history → TabPFN predicts best window → SerpApi finds real place → Gemma writes the action
+> **What Now?** — you enter energy and minutes, AI picks a task
+> **Greenstep** — you enter context, app finds a real place and writes a specific action
 
 ---
 
@@ -77,46 +79,46 @@ No form. No query. No decision fatigue.
 
 | Feature | Description |
 | :--- | :--- |
-| **🧠 TabPFN Prediction** | Reads your 30-day history CSV and predicts the probability of going outside for each evening window today. |
-| **📍 Real Places via SerpApi** | Fetches actual parks and cafes within walking distance using Google Maps engine. |
-| **✍️ Gemma Action Writer** | Combines window + place + weather into one specific, gentle, actionable sentence. |
-| **📊 Window Probability Chart** | Visual bar chart showing all candidate hours, with the best window highlighted. |
-| **🔄 Self-Improving Loop** | "I did it" appends a new row to `history.csv` — tomorrow's prediction gets better. |
-| **🌙 Dark Mode Only** | A carefully tuned dark UI with emerald accents, ambient glow, and reduced-motion support. |
-| **📱 Fully Responsive** | Works on desktop, tablet, and mobile — tuned breakpoint at 420px. |
-| **⚡ Zero Form Filling** | Open the app. See one action. That's the whole flow. |
+| **📍 Real places via SerpApi** | Queries Google Maps for cafes, parks, and walking spots near your coordinates. No invented place names. |
+| **🌤️ Live weather** | Geocodes your city with Nominatim and pulls current temperature and conditions from Open-Meteo. No API keys required for either. |
+| **✍️ Gemma writes the action** | Combines window, weather, place, and mood into one specific sentence with a first step and a fallback. |
+| **🔄 Local-first AI** | Runs Gemma 3 4B through Ollama on your machine by default. Nothing leaves your laptop. |
+| **☁️ Cloud fallback** | One env var switches to Google AI Studio's Gemma endpoint — same model family, same prompt, same output. |
+| **⚡ Input-keyed cache** | Re-submitting the same inputs returns the cached result instantly. Different inputs recompute. No wasted SerpApi credits. |
+| **🌙 Dark-only UI** | Custom dark theme with emerald accents, ambient glow, and a focus state on every input. |
+| **📱 Responsive** | Works on desktop and mobile. |
 
 ---
 
 ## 🧑‍💻 Tech Stack
 
-### **Backend**
+### **Backend & AI**
 
 | Technology | Badge | Purpose |
 | :--- | :--- | :--- |
-| **[FastAPI](https://fastapi.tiangolo.com/)** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white) | Lightweight async web framework serving HTML + handling the `/done` POST. |
-| **[Jinja2](https://jinja.palletsprojects.com/)** | ![Jinja2](https://img.shields.io/badge/Jinja2-B41717?style=for-the-badge&logo=jinja&logoColor=white) | Server-side templating for the prediction and action cards. |
-| **[TabPFN](https://priorlabs.ai/)** | ![TabPFN](https://img.shields.io/badge/TabPFN-Prior_Labs-7C3AED?style=for-the-badge) | Tabular foundation model that predicts the best outdoor window from history. |
-| **[SerpApi](https://serpapi.com/)** | ![SerpApi](https://img.shields.io/badge/SerpApi-Google_Maps-4285F4?style=for-the-badge) | Fetches real parks and cafes via the Google Maps engine. |
-| **[Gemma](https://ai.google.dev/gemma)** | ![Gemma](https://img.shields.io/badge/Gemma-Google_AI-8E75B2?style=for-the-badge) | Writes the final one-sentence action combining window, place, and weather. |
-| **[Pandas](https://pandas.pydata.org/)** | ![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white) | CSV loading and feature engineering for TabPFN input. |
+| **[FastAPI](https://fastapi.tiangolo.com/)** | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white) | Async web framework serving HTML and handling form posts. |
+| **[Ollama](https://ollama.com/)** | ![Ollama](https://img.shields.io/badge/Ollama-000000?style=for-the-badge) | Local inference runtime. Default path. |
+| **[Gemma 3 4B](https://ai.google.dev/gemma)** | ![Gemma](https://img.shields.io/badge/Gemma-3_4B-8E75B2?style=for-the-badge) | Open-weight model. Runs locally via Ollama, or in the cloud via Google AI Studio. |
+| **[httpx](https://www.python-httpx.org/)** | ![httpx](https://img.shields.io/badge/httpx-Async-2C5BB4?style=for-the-badge) | Async HTTP client for every external call. |
+| **[SerpApi](https://serpapi.com/)** | ![SerpApi](https://img.shields.io/badge/SerpApi-Google_Maps-4285F4?style=for-the-badge) | Real place lookup. |
 
-### **Frontend**
+### **External APIs (no keys needed)**
+
+| Service | Used for | Key required? |
+| :--- | :--- | :--- |
+| **[Nominatim](https://nominatim.openstreetmap.org/)** | Geocoding city names → lat/lon | No |
+| **[Open-Meteo](https://open-meteo.com/)** | Current weather by coordinates | No |
+| **[SerpApi](https://serpapi.com/)** | Google Maps place search | Yes (100 searches/month free) |
+| **[Google AI Studio](https://aistudio.google.com/)** | Cloud Gemma inference | Yes (only in `AI_PROVIDER=api` mode) |
+
+### **Storage & Tooling**
 
 | Technology | Badge | Purpose |
 | :--- | :--- | :--- |
-| **[Jinja2 Templates](https://jinja.palletsprojects.com/)** | ![Jinja2](https://img.shields.io/badge/Jinja2-B41717?style=for-the-badge) | Server-rendered HTML — no client-side JS framework needed. |
-| **[Custom CSS](https://developer.mozilla.org/en-US/docs/Web/CSS)** | ![CSS](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white) | Hand-written dark theme with CSS variables, ambient glow, and mobile breakpoints. |
-| **[SVG Icons](https://heroicons.com/)** | ![SVG](https://img.shields.io/badge/SVG-Inline-FFB13B?style=for-the-badge&logo=svg&logoColor=white) | Inline SVG icons — no icon font, no extra dependency. |
-
-### **DevOps & Tooling**
-
-| Technology | Badge | Purpose |
-| :--- | :--- | :--- |
-| **[uv](https://github.com/astral-sh/uv)** | ![uv](https://img.shields.io/badge/uv-Astral-DE5FE9?style=for-the-badge) | Ultra-fast Python package manager and virtualenv tool. |
-| **[Render](https://render.com/)** | ![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white) | Backend hosting with auto-deploy from GitHub and env var management. |
-| **[Git](https://git-scm.com/) & [GitHub](https://github.com/)** | ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white) | Version control and CI/CD triggers. |
-| **[Environment Variables](https://12factor.net/config)** | ![Env](https://img.shields.io/badge/Env-Vars-ECD53F?style=for-the-badge) | Secure handling of API keys (never committed). |
+| **[SQLite](https://sqlite.org/)** | ![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white) | Input-keyed cache. One file. No migrations, no ORM. |
+| **[uv](https://github.com/astral-sh/uv)** | ![uv](https://img.shields.io/badge/uv-Astral-DE5FE9?style=for-the-badge) | Dependency resolution and lockfile management. |
+| **[Render](https://render.com/)** | ![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white) | Hosting with auto-deploy from GitHub and env var management. |
+| **[Git](https://git-scm.com/) & [GitHub](https://github.com/)** | ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white) | Version control. |
 
 ---
 
@@ -125,36 +127,35 @@ No form. No query. No decision fatigue.
 ```text
 greenstep/
 ├── data/
-│   └── history.csv               # 30-day training data (generated by seed script)
-├── scripts/
-│   └── seed_history.py           # Generates plausible outdoor history CSV
+│   └── greenstep.db                  # SQLite cache (gitignored)
 ├── src/
 │   └── greenstep/
 │       ├── __init__.py
-│       ├── main.py               # FastAPI app + routes + static mount
-│       ├── predictor.py          # TabPFN wrapper (predicts best window)
-│       ├── places.py             # SerpApi Google Maps wrapper
-│       ├── ai_provider.py        # Gemma action writer
-│       └── history.py            # CSV read/write helpers
-├── static/
-│   └── css/
-│       └── style.css             # Dark mode only, custom CSS
-├── templates/
-│   ├── base.html                 # Base layout
-│   ├── index.html                # Main page (prediction + action)
-│   └── _action_card.html         # Reusable action card partial
-├── .env                          # Local keys (gitignored) — or export in shell
+│       ├── main.py                   # FastAPI app, routes, HTML shell
+│       ├── ai_provider.py            # Local Ollama / cloud Google AI switch
+│       ├── weather.py                # Nominatim geocoding + Open-Meteo
+│       ├── places.py                 # SerpApi Google Maps wrapper
+│       ├── cache.py                  # Input-keyed SQLite cache
+│       └── static/
+│           └── style.css             # Dark-only theme
+├── .env                              # API keys (gitignored)
 ├── .gitignore
-├── pyproject.toml                # uv-managed dependencies
-└── README.md                     # This file
+├── pyproject.toml
+├── uv.lock
+└── README.md
 ```
+
+The whole app is a single Python package. Templates are inline f-strings — no Jinja2 templating layer, no `templates/` folder, no build step. Static assets live inside the package so paths resolve the same in local and deployed environments.
+
+---
 
 ## ⚙️ Quick Start (Local Development)
 
 ### 0. Prerequisites
-- Python 3.11+
-- [uv](https://github.com/astral-sh/uv) installed (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
-- API keys for TabPFN, SerpApi, and Google AI Studio
+
+- Python 3.13+
+- [uv](https://github.com/astral-sh/uv) installed
+- [Ollama](https://ollama.com) installed (for local mode)
 
 ### 1. Clone & Install
 
@@ -164,325 +165,174 @@ cd greenstep
 uv sync
 ```
 
-### 2. Set API Keys (choose one)
-
-**Option A — Export in terminal (recommended):**
+### 2. Pull the Model
 
 ```bash
-export TABPFN_API_KEY="your_tabpfn_key"
-export SERPAPI_API_KEY="your_serpapi_key"
-export GOOGLE_API_KEY="your_google_key"
+ollama pull gemma3:4b
+ollama serve
 ```
 
-**Option B — Inline one-liner:**
+Leave `ollama serve` running in one terminal.
 
-```bash
-TABPFN_API_KEY="xxx" SERPAPI_API_KEY="yyy" GOOGLE_API_KEY="zzz" \
-  uv run uvicorn src.greenstep.main:app --reload
- ```
+### 3. Set Up `.env`
 
-**Option C — Shell profile (persistent):**
+Create a file called `.env` in the project root:
 
-```bash
-echo 'export TABPFN_API_KEY="your_key"' >> ~/.zshrc
-echo 'export SERPAPI_API_KEY="your_key"' >> ~/.zshrc
-echo 'export GOOGLE_API_KEY="your_key"' >> ~/.zshrc
-source ~/.zshrc
+```
+AI_PROVIDER=local
+SERPAPI_KEY=your_serpapi_key
+GOOGLE_API_KEY=your_google_key
+GOOGLE_MODEL=gemma-4-26b-a4b-it
 ```
 
-### 3. Generate Training Data
-
-```bash
-uv run python scripts/seed_history.py
-# Writes 150 rows to data/history.csv
-```
+Only `SERPAPI_KEY` is strictly required. `GOOGLE_API_KEY` is used only when `AI_PROVIDER=api`.
 
 ### 4. Run the Server
+
 ```bash
-uv run uvicorn src.greenstep.main:app --reload
+uv run uvicorn greenstep.main:app --reload
 ```
 
-Server runs at `http://localhost:8000`.
+Server runs at `http://127.0.0.1:8000`.
 
 ### 5. Open Your Browser
 
-Navigate to [http://localhost:8000](http://localhost:8000). You should see:
-
-- TabPFN's predicted best window (e.g., `18:00`, 78%)
-- A real nearby place from SerpApi
-- A Gemma-written action sentence
-- An "I did it" button that appends to `history.csv`
+Navigate to [http://127.0.0.1:8000](http://127.0.0.1:8000). You'll see a four-field form. Submit it, and after a few seconds (10–25s on the first call), you'll get a prediction card with a real place, an action, a first step, and a fallback.
 
 ---
 
-## 📡 API Endpoints
+## 🧠 How It Works
 
-| Method | Endpoint | Description | Auth Required |
-| :--- | :--- | :--- | :--- |
-| **GET** | `/` | Renders the home page with prediction, place, and action | ❌ |
-| **POST** | `/done` | Appends the current prediction to `history.csv` as `went_outside=1` | ❌ |
-| **GET** | `/static/css/style.css` | Serves the dark mode stylesheet | ❌ |
+### Request Flow
 
-> Greenstep is intentionally **sessionless and formless**. There is no login, no signup, no database — just a CSV that grows with every "I did it" tap.
+1. **User submits the form** — location, sleep hours, screen time, mood.
+2. **Check the cache** — if the same inputs were submitted before today, return the stored payload instantly. No API calls.
+3. **Geocode** — Nominatim converts "Delhi" → latitude, longitude.
+4. **Fetch weather** — Open-Meteo returns current temperature and a simplified label (`mild`, `hot`, `cold`, `rainy`).
+5. **Find places** — SerpApi queries Google Maps for cafes and parks within a 14-zoom radius of the coordinates.
+6. **Write the action** — Gemma receives location, weather, mood, and the top result. It returns a five-field JSON object.
+7. **Cache the result** — keyed on the exact inputs. Re-submitting is instant.
+8. **Render** — the action card, place chip, and footer are assembled in `main.py` and returned as HTML.
 
----
+### The Prompt
 
-## 🧪 Testing Locally
-
-### 1. Verify the CSV was generated
-
-```bash
-head -5 data/history.csv
-wc -l data/history.csv
-```
-
-Expected: 5 sample rows + 151 lines total (150 rows + header).
-
-### 2. Verify TabPFN auth
-
-```bash
-python -c "import os; print('OK' if os.getenv('TABPFN_API_KEY') else 'MISSING')"
-```
-
-Expected: `OK`.
-
-### 3. Hit the home route
-
-```bash
-curl -s http://localhost:8000 | grep -o 'Best window today'
-```
-
-Expected: `Best window today`.
-
-### 4. Hit the done route
-
-```bash
-curl -X POST http://localhost:8000/done -i
-# Expect: HTTP/1.1 303 See Other
-```
-
-Then check `data/history.csv` grew by one row.
-
-### 5. Test TabPFN directly
-
-```bash
-uv run python -c "
-from src.greenstep.predictor import predict_best_window
-result = predict_best_window(sleep_hours=7.2, screen_time_hours=4.5, mood=4, weather='mild')
-print(result)
-"
-```
-
-Expected: a dict with `hour`, `probability`, and `all_windows`.
-
----
-
-## 🏗️ System Design
-
-### High-level Architecture
+The system prompt enforces behavior with hard rules:
 
 ```text
-┌──────────────────────────────────┐       ┌────────────────────────────────────┐
-│         Browser (User)           │       │      FastAPI (Render)              │
-│                                  │       │                                    │
-│  ┌────────────────────────────┐  │ HTTPS │  ┌──────────────────────────────┐  │
-│  │   Jinja2 Rendered HTML     │◄─┼───────┼─►│      GET /  (home)           │  │
-│  │   • Prediction card        │  │       │  │      POST /done (append)     │  │
-│  │   • Action card            │  │       │  └──────────────┬───────────────┘  │
-│  │   • I did it button        │  │       │                 ▼                  │
-│  └────────────────────────────┘  │       │  ┌──────────────────────────────┐  │
-│                                  │       │  │       predictor.py           │  │
-│  • Dark mode only                │       │  │   (TabPFN + history.csv)     │  │
-│  • Responsive (420px break)      │       │  └──────────────┬───────────────┘  │
-│  • SVG icons, custom CSS         │       │                 ▼                  │
-│                                  │       │  ┌──────────────────────────────┐  │
-└──────────────────────────────────┘       │  │        places.py             │  │
-                                           │  │   (SerpApi Google Maps)      │  │
-                                           │  └──────────────┬───────────────┘  │
-                                           │                 ▼                  │
-                                           │  ┌──────────────────────────────┐  │
-                                           │  │      ai_provider.py          │  │
-                                           │  │   (Gemma action writer)      │  │
-                                           │  └──────────────────────────────┘  │
-                                           └────────────────────────────────────┘
-                                                            │
-                                                            ▼
-                                           ┌────────────────────────────────────┐
-                                           │       External APIs (HTTPS)        │
-                                           │  • TabPFN Cloud (priorlabs.ai)     │
-                                           │  • SerpApi (serpapi.com)           │
-                                           │  • Google AI (aistudio.google)     │
-                                           └────────────────────────────────────┘
+- NEVER use vague references. Not "a nearby trail", "the river".
+- NEVER make the user decide. Bad: "Choose a trail".
+- NEVER use these words: might, could, perhaps, simply, just,
+  opportunity, movement, wellness, mindful, conducive, stillness.
+- duration_minutes between 10 and 45. Default 25.
+- You are given "nearest_place" with a real name. Use it.
+- first_step must be what you do BEFORE leaving. Shoes, keys, water.
+- fallback must be a smaller OUTDOOR action. Never indoor.
 ```
 
-### Request Flow (Home Page)
-
-1. **Browser** → `GET /`
-2. **FastAPI** → `predict_best_window(sleep, screen, mood, weather)`
-3. **predictor.py** → loads `history.csv` → encodes features → calls TabPFN cloud → returns best hour + probability
-4. **places.py** → calls SerpApi Google Maps → returns nearest parks/cafes
-5. **ai_provider.py** → sends window + place + weather to Gemma → returns one action sentence
-6. **Jinja2** → renders `index.html` with prediction, place, and action
-7. **Browser** → user reads the action, clicks "I did it"
-8. **POST /done** → appends a row to `history.csv` → tomorrow's prediction improves
-
-### Why This Design
-
-- **No database** — a 30-row CSV is TabPFN's training set. Adding Postgres would be overkill for a habit tracker.
-- **Server-rendered** — no React, no build step, no state hydration. The whole app fits in ~400 lines of Python.
-- **Single external call per provider** — TabPFN: 1 call. SerpApi: 1 call. Gemma: 1 call. Free tiers cover hundreds of sessions.
-- **Failure-tolerant** — every provider has a fallback (TabPFN returns `18:00 / 50%`, SerpApi returns "Riverside Park", Gemma returns a templated sentence).
+The banned-words list came from real failures. Gemma 3 4B kept writing "conducive to stillness" and "simply take a walk" until those exact words were named. Small models follow concrete forbiddances better than tone descriptions.
 
 ---
 
-## 📊 Data Schema
+## 🔄 Local vs Cloud AI
 
-Greenstep uses a **flat CSV** instead of a relational database. This keeps the ML pipeline simple and the deployment footprint tiny.
-
-### `data/history.csv`
-
-| Column | Type | Range / Values | Description |
-| :--- | :--- | :--- | :--- |
-| `date` | ISO string | `YYYY-MM-DD` | The day this observation belongs to |
-| `hour` | int | `16, 17, 18, 19, 20` | Evening window (24-hour) |
-| `sleep_hours` | float | `4.0 – 10.0` | Hours slept the night before |
-| `screen_time_hours` | float | `1.0 – 12.0` | Total screen time that day |
-| `mood` | int | `1 – 5` | Self-reported mood (1 = bad, 5 = great) |
-| `weather` | string | `mild`, `hot`, `cold`, `rainy` | Weather category |
-| `went_outside` | int | `0` or `1` | **Target variable** — did the user go outside? |
-
-### How TabPFN Uses It
+The entire inference layer is one module (`ai_provider.py`) with one switch:
 
 ```python
-# Features (X)
-X = [
-    [hour, sleep_hours, screen_time_hours, mood, weather_encoded, weekday]
-    for row in history
-]
-
-# Target (y)
-y = [went_outside for row in history]
-
-# Predict probability of going outside for each candidate hour today
-model = TabPFNClassifier()
-model.fit(X, y)
-probs = model.predict_proba(today_candidates)
+AI_PROVIDER = os.getenv("AI_PROVIDER", "local")
 ```
 
-TabPFN treats this as **binary classification** — the natural fit for a yes/no outcome. It works well with small tabular datasets (30–300 rows), which is exactly what a personal habit log looks like.
+**`local`** — calls Ollama at `http://localhost:11434/api/generate` with `format: "json"`. The model runs on your machine. No data leaves it. First call takes 5–15s (model load into RAM), subsequent calls 2–6s.
 
-### Relationship to Relational Design
+**`api`** — calls Google AI Studio's Gemma endpoint. Same prompt, same output schema, same code path downstream. Faster response, but requires a key and sends the context to Google.
 
-| HuntTrack (relational) | Greenstep (flat CSV) |
-| :--- | :--- |
-| `User` → `Application` (1:many) | `date` → `hour` (1:many, implicit) |
-| Postgres + Prisma ORM | CSV + Pandas |
-| Multi-user, sessions, JWT | Single-user, sessionless |
-| Indexes, foreign keys, migrations | Header row, gitignored |
+Same model family, two runtimes. One env var decides.
 
-The CSV is intentionally **gitignored** so each user's behavior stays local. The seed script generates a fresh 30-day file on first run.
+### Gemma on the Gemini API has three quirks
+
+These cost real debugging time and are worth documenting:
+
+1. It doesn't accept `system_instruction`. Instructions must be folded into the user message.
+2. It doesn't accept `responseMimeType: "application/json"`. There is no JSON mode — the prompt enforces the format, and the parser has to be forgiving.
+3. It doesn't accept `thinkingConfig`, even though the model metadata reports `thinking: true`.
+
+The parser (`_parse_json` in `ai_provider.py`) strips markdown fences, cuts preamble before the first `{`, and cuts trailing text after the last `}`. That's what makes a small open model usable for structured output.
 
 ---
 
-## 🚀 Deployment
+## ⚡ Caching
 
-- **Host**: [Render](https://render.com) — connected to GitHub, auto-deploys on `main` push.
-- **Runtime**: Python 3.11 with `uv` for fast installs.
-- **Static files**: Served by FastAPI via `app.mount("/static", ...)`.
-- **Persistence**: Render's free tier has an **ephemeral filesystem** — `data/history.csv` resets on each deploy. For a hackathon submission this is fine; for production, mount a [Render Disk](https://render.com/docs/disks) or swap CSV for SQLite.
+Every prediction is keyed on the exact inputs that produced it:
 
-### Render Configuration
-
-| Setting | Value |
-| :--- | :--- |
-| **Runtime** | Python |
-| **Build Command** | `pip install uv && uv sync` |
-| **Start Command** | `uv run uvicorn src.greenstep.main:app --host 0.0.0.0 --port $PORT` |
-| **Plan** | Free |
-
-### `render.yaml` (optional, for blueprint deploys)
-
-```yaml
-services:
-  - type: web
-    name: greenstep
-    runtime: python
-    buildCommand: pip install uv && uv sync
-    startCommand: uv run uvicorn src.greenstep.main:app --host 0.0.0.0 --port $PORT
-    envVars:
-      - key: TABPFN_API_KEY
-        sync: false
-      - key: SERPAPI_API_KEY
-        sync: false
-      - key: GOOGLE_API_KEY
-        sync: false
+```python
+def _key(location, sleep, screen, mood):
+    raw = f"{date.today().isoformat()}|{location}|{sleep}|{screen}|{mood}"
+    return hashlib.sha256(raw.encode()).hexdigest()[:16]
 ```
 
-### Deploy Steps
+Stored in SQLite at `data/greenstep.db`.
 
-1. Push your code to GitHub:
+- **Same inputs, same day** → instant response from cache
+- **Different inputs** → recompute (geocode + weather + places + Gemma)
+- **Same inputs, next day** → recompute (the date is part of the key, so weather and places are fresh)
 
-```bash
-git add .
-git commit -m "Greenstep ready for deployment"
-git push origin main
-```
-
-2. Go to [render.com](https://render.com) → **New +** → **Web Service** → connect your repo.
-
-3. Use the build and start commands from the table above.
-
-4. Add the three env vars in the **Environment** tab.
-
-5. Click **Create Web Service**. First build takes ~3 minutes.
-
-6. Once live, hit the URL. You should see the same page you saw locally.
+This exists because each submission costs one SerpApi search against a 100/month free tier. Without caching, testing burns credits in an hour. With it, only unique input combinations cost a credit.
 
 ---
 
 ## 🔐 Environment Variables
 
-### Development (Terminal)
+| Variable | Default | Purpose |
+| :--- | :--- | :--- |
+| `AI_PROVIDER` | `local` | `local` (Ollama) or `api` (Google AI Studio) |
+| `OLLAMA_URL` | `http://localhost:11434/api/generate` | Ollama endpoint |
+| `OLLAMA_MODEL` | `gemma3:4b` | Local model name |
+| `GOOGLE_API_KEY` | — | Required only when `AI_PROVIDER=api` |
+| `GOOGLE_MODEL` | `gemma-4-26b-a4b-it` | Cloud model name |
+| `SERPAPI_KEY` | — | Required always (places lookup) |
+
+---
+
+## 🚀 Deployment
+
+Deployed on **Render** with `AI_PROVIDER=api`. Render's free tier has 512 MB RAM and no GPU — Ollama can't run there. The cloud switch is what makes deployment possible without changing the architecture.
+
+### Render Configuration
+
+| Setting | Value |
+| :--- | :--- |
+| **Runtime** | Python 3 |
+| **Build Command** | `pip install uv && uv sync` |
+| **Start Command** | `uv run uvicorn greenstep.main:app --host 0.0.0.0 --port $PORT` |
+| **Plan** | Free |
+
+### Environment Variables on Render
+
+Set these in the Render dashboard under **Environment**:
+
+```
+AI_PROVIDER=api
+GOOGLE_API_KEY=...
+GOOGLE_MODEL=gemma-4-26b-a4b-it
+SERPAPI_KEY=...
+```
+
+### Deploy Steps
+
+1. Push to GitHub:
 
 ```bash
-export TABPFN_API_KEY="your_tabpfn_key"
-export SERPAPI_API_KEY="your_serpapi_key"
-export GOOGLE_API_KEY="your_google_key"
+git add .
+git commit -m "deploy"
+git push origin main
 ```
 
-Or inline:
+2. Render → **New +** → **Web Service** → connect the repo.
 
-```bash
-TABPFN_API_KEY="xxx" SERPAPI_API_KEY="yyy" GOOGLE_API_KEY="zzz" \
-  uv run uvicorn src.greenstep.main:app --reload
-```
+3. Paste the build and start commands above.
 
-### Production (Render Dashboard)
+4. Add the four env vars.
 
-| Variable | Value | Where to Set |
-| :--- | :--- | :--- |
-| `TABPFN_API_KEY` | From [platform.priorlabs.ai](https://platform.priorlabs.ai) | Render → Environment |
-| `SERPAPI_API_KEY` | From [serpapi.com/manage-api-key](https://serpapi.com/manage-api-key) | Render → Environment |
-| `GOOGLE_API_KEY` | From [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | Render → Environment |
-
-### Getting Each Key
-
-| Provider | Sign-up URL | Free Tier |
-| :--- | :--- | :--- |
-| **TabPFN** | [platform.priorlabs.ai](https://platform.priorlabs.ai) | Free tier for `tabpfn-client` |
-| **SerpApi** | [serpapi.com/users/sign_up](https://serpapi.com/users/sign_up?plan=free) | 100 searches / month |
-| **Google AI (Gemma)** | [aistudio.google.com/apikey](https://aistudio.google.com/apikey) | Free with rate limits |
-
-### `.gitignore`
-
-```gitignore
-__pycache__/
-*.pyc
-.env
-.venv/
-uv.lock
-data/history.csv
-```
+5. **Create Web Service.** First build takes ~3 minutes.
 
 ---
 
@@ -490,21 +340,21 @@ data/history.csv
 
 Building **Greenstep** taught me:
 
-1. **TabPFN is genuinely useful for small tabular data**: I'd only used tree-based models (XGBoost, Random Forest) before. TabPFN's in-context learning on a 150-row CSV produced sensible probability curves without any hyperparameter tuning. It's the right tool for a personal habit log.
+1. **Prompt engineering is mostly constraint design.** The hard part wasn't getting Gemma to write well — it was stopping it from writing "a quiet walk might be a gentle way to enjoy the mild weather." Naming banned words worked better than describing a desired tone. Small models follow concrete forbiddances.
 
-2. **The architecture is the product**: The shift from "user fills a form" to "app reads history" wasn't a UI change — it changed what the app *is*. What Now? is a query tool. Greenstep is a prediction tool. Same AI stack, completely different product.
+2. **Real data beats clever prompts.** Gemma kept inventing "the closest park gate" until SerpApi gave it a real cafe name. Once the context had `nearest_place: {name: "ROOTED GROUNDS CAFE", rating: 5}`, the action became specific automatically. No prompt tweak would have fixed that.
 
-3. **Every external API needs a fallback**: TabPFN, SerpApi, and Gemma all fail sometimes (network, rate limits, auth). Every provider in Greenstep has a hardcoded fallback so the page never crashes — it just degrades gracefully.
+3. **Local-first + cloud fallback is a real architecture, not a hack.** One env var, one branch, same code path. The local-first story stays honest for anyone cloning the repo, and the Render deployment still works.
 
-4. **Server-rendered HTML is underrated**: For a 3-card layout with no client-side state, Jinja2 + custom CSS beat React + Tailwind on every axis: fewer dependencies, faster cold starts, simpler deployment.
+4. **Gemma on the Gemini API has sharp edges.** Three of them, all documented above. Reading the docs would have saved half a day, but hitting them and writing them down is what makes this README useful to the next person.
 
-5. **CSV as a database is fine for single-user apps**: I resisted the urge to add Postgres. A 150-row CSV loads in microseconds, trains TabPFN instantly, and is trivially inspectable with `head`. The right database is often no database.
+5. **Input-keyed caching solves the "why is this expensive" problem.** My first design cached per-day, which meant I had to manually clear it between tests. Keying on inputs means the cache is invisible — it just works, and SerpApi credits last.
 
-6. **Dark mode is a design constraint, not a toggle**: Building dark-only forced me to think about contrast, ambient glow, and color hierarchy from the start. The result reads better than a bolted-on dark theme.
+6. **Render's free tier has no GPU, and that's fine.** Once the inference layer was abstracted, deployment was just a matter of setting `AI_PROVIDER=api`. The architecture decision made the deployment decision trivial.
 
-7. **Deployment is where the real challenges begin**: Render's ephemeral filesystem, static file mounting, and env var injection all required debugging. I learned to test in a production-like environment early, not after writing all the code.
+7. **Server-rendered HTML was the right call.** No React, no build step, no hydration. The whole app fits in about 400 lines of Python plus one CSS file.
 
-8. **Hacktoberfest values clarity over cleverness**: A submission with 8 small, well-named files beats a monolith. Reviewers can read `predictor.py`, `places.py`, and `ai_provider.py` independently and understand the pipeline in five minutes.
+8. **Writing this README clarified the design.** Explaining why the prompt is written the way it is forced me to check whether it actually was — and to cut the parts that weren't true.
 
 ---
 
@@ -512,21 +362,20 @@ Building **Greenstep** taught me:
 
 | Phase | Feature | Why |
 | :--- | :--- | :--- |
-| **Near-term** | Swap CSV for SQLite | Persist across Render deploys |
-| **Near-term** | Real weather API (OpenWeatherMap) | Replace the hardcoded `weather` field |
-| **Near-term** | Manual "didn't go" logging | Give TabPFN negative samples too |
-| **Mid-term** | Per-user CSV via cookies | Let multiple users share one deployment |
-| **Mid-term** | Push notifications at predicted window | Nudge the user at the right moment |
-| **Mid-term** | Weekly summary chart | Show prediction accuracy over time |
-| **Long-term** | Local TabPFN (GPU) | Remove the cloud dependency |
-| **Long-term** | On-device fine-tuning | Personalize the model per user |
-| **Long-term** | "Hunt" phase — multi-day planning | Predict the best *day* of the week, not just the hour |
+| **Near-term** | "I did it" feedback loop | Log outcomes so the app can reference past behavior in future prompts |
+| **Near-term** | Weather-aware fallback | If it's raining, offer an indoor option within the same framework |
+| **Mid-term** | TabPFN prediction layer | Predict the best window from a history CSV instead of asking the user |
+| **Mid-term** | Weekly summary | Show which windows actually produced outdoor time |
+| **Long-term** | Per-user isolation | Cookie-scoped caches so one deployment serves multiple people |
+| **Long-term** | Local TabPFN (GPU) | Remove the cloud dependency for prediction too |
+
+The TabPFN layer was planned and cut. Without a real history to train on, it would have been a fake feature. Recording outcomes first is the honest path to it.
 
 ---
 
 ## 🤝 Connect With Me
 
-I built this to explore the intersection of **tabular ML** and **everyday habit design**. If you're working on TabPFN, Gemma, or passive prediction apps, let's connect.
+Built for the [Hacktoberfest Open-Source AI Challenge: Week 1 — Touch Grass](https://dev.to/challenges/hacktoberfest-week1-2026-10-05).
 
 - **LinkedIn**: [Arpita Singh](https://linkedin.com/in/arpitasi1gh)
 - **GitHub**: [arpitasi1gh](https://github.com/arpitasi1gh)
@@ -536,15 +385,15 @@ I built this to explore the intersection of **tabular ML** and **everyday habit 
 
 ## 📝 License
 
-This project is open source and available under the [MIT License](LICENSE).
+MIT. See [LICENSE](LICENSE).
 
 ---
 
 ## ⭐ Show Your Support
 
-If this project helped you understand TabPFN, SerpApi + LLM integration, or how to design a passive-prediction app, please consider giving it a ⭐ on GitHub — it means a lot and helps others discover it.
+If this helped you understand local-first AI design, the Gemma-via-Ollama path, or how to build a small server-rendered app that doesn't need a framework, give it a ⭐.
 
 ---
 
-**Built with ❤️ by Arpita Singh**
-_"Predict the window. Find the place. Write the step."_
+**Built with 🌿 by Arpita Singh**
+_"When, where, what. Three answers, one page."_
