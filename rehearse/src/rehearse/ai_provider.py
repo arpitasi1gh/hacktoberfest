@@ -60,10 +60,10 @@ Conduct a realistic, high-stakes interview. You ask one question, wait for the c
 - INCLUDE: A concise follow-up that drills into the weakest part of their previous answer.
 
 # CRITICAL OUTPUT FORMAT
-- Do NOT output any thinking, planning, drafting, or meta-commentary.
-- Do NOT use bullet points or asterisks.
-- Start your response immediately with the spoken words.
-- RETURN: ONLY the spoken question. No quotes.
+You must output your response as a JSON object. Do not output any thinking or planning outside the JSON.
+{{
+  "question": "Your spoken question here."
+}}
 
 # FALLBACK INSTRUCTION
 If the candidate says "I don't know" or gives a highly vague answer, do not switch topics. Pick one keyword they used and ask them to define it or provide a concrete example.
@@ -168,26 +168,36 @@ async def _call_ollama(system: str, context: dict) -> str:
 
 
 def clean_model_output(text: str) -> str:
-    """Strip out chain-of-thought if the model hallucinates it."""
-    text = text.strip()
+    """Extract the final question, ignoring all hallucinated thinking."""
+    import re
+    import json
     
-    # If the model is echoing the prompt or drafting thoughts
-    if "* Role:" in text or "Wait," in text or "Draft" in text or "Let's" in text:
-        # 1. Try to find the last string wrapped in quotes (the final drafted question)
-        import re
-        quotes = re.findall(r'"([^"]{10,})"', text)
-        if quotes:
-            return quotes[-1].strip()
-        
-        # 2. Fallback: find the last line that looks like a question
-        lines = [l.strip() for l in text.split('\n') if l.strip()]
-        for line in reversed(lines):
-            if line.endswith('?'):
-                return line
-        
-        # 3. Ultimate fallback: return the last line
-        return lines[-1] if lines else text
-        
+    # 1. Clean markdown
+    text = text.replace("```json", "").replace("```", "").strip()
+    
+    # 2. Find all JSON objects in the text, and check them from bottom to top
+    # (The real answer is almost always the last one it generates)
+    matches = re.findall(r'\{.*?\}', text, re.DOTALL)
+    for match in reversed(matches):
+        try:
+            data = json.loads(match)
+            if "question" in data:
+                return data["question"].strip()
+        except Exception:
+            pass
+            
+    # 3. If JSON completely fails, find the last thing inside double quotes
+    quotes = re.findall(r'"([^"]{10,})"', text)
+    if quotes:
+        return quotes[-1].strip()
+
+    # 4. Last resort: find the last line that ends in a question mark or period
+    lines = [l.strip() for l in text.split('\n') if l.strip()]
+    for line in reversed(lines):
+        if line.endswith('?') or line.endswith('.'):
+            # Clean up leading bullets or asterisks
+            return re.sub(r'^[\*\-\s]+', '', line)
+
     return text
 
 
