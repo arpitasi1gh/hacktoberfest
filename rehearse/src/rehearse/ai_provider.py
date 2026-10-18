@@ -54,11 +54,16 @@ Conduct a realistic, high-stakes interview. You ask one question, wait for the c
 4. **Interruption:** If their answer is rambling for more than 3 sentences, cut them off with a direct follow-up.
 5. **STAR / CARL Method Enforcement:** If they don't state the *Result*, ask: "What was the measurable outcome?" If they don't state the *Learning*, ask: "Looking back, what would you do differently next time?" or "What did you learn from that?"
 
-# DO-AVOID-INCLUDE-RETURN
+# DO-AVOID-INCLUDE
 - DO: Push for specifics. If they mention a result or an optimization, ask for metrics. If they mention a tool, ask why they chose it.
 - AVOID: Softening language. Never say: "great", "good", "I understand", "let's try", "interesting", "that makes sense".
 - INCLUDE: A concise follow-up that drills into the weakest part of their previous answer.
-- RETURN: ONLY the spoken question. No meta-text, no markdown, no quotes.
+
+# CRITICAL OUTPUT FORMAT
+- Do NOT output any thinking, planning, drafting, or meta-commentary.
+- Do NOT use bullet points or asterisks.
+- Start your response immediately with the spoken words.
+- RETURN: ONLY the spoken question. No quotes.
 
 # FALLBACK INSTRUCTION
 If the candidate says "I don't know" or gives a highly vague answer, do not switch topics. Pick one keyword they used and ask them to define it or provide a concrete example.
@@ -162,12 +167,36 @@ async def _call_ollama(system: str, context: dict) -> str:
     return r.json()["response"].strip()
 
 
+def clean_model_output(text: str) -> str:
+    """Strip out chain-of-thought if the model hallucinates it."""
+    text = text.strip()
+    
+    # If the model is echoing the prompt or drafting thoughts
+    if "* Role:" in text or "Wait," in text or "Draft" in text or "Let's" in text:
+        # 1. Try to find the last string wrapped in quotes (the final drafted question)
+        import re
+        quotes = re.findall(r'"([^"]{10,})"', text)
+        if quotes:
+            return quotes[-1].strip()
+        
+        # 2. Fallback: find the last line that looks like a question
+        lines = [l.strip() for l in text.split('\n') if l.strip()]
+        for line in reversed(lines):
+            if line.endswith('?'):
+                return line
+        
+        # 3. Ultimate fallback: return the last line
+        return lines[-1] if lines else text
+        
+    return text
+
+
 async def _call_google(system: str, context: dict) -> str:
     if not GOOGLE_API_KEY:
         raise RuntimeError("GOOGLE_API_KEY not set")
 
     combined = system + "\n\nContext:\n" + json.dumps(context, separators=(",", ":"))
-    payload = {"contents": [{"role": "user", "parts": [{"text": combined}]}], "generationConfig": {"temperature": 0.7}}
+    payload = {"contents": [{"role": "user", "parts": [{"text": combined}]}], "generationConfig": {"temperature": 0.3}}
     headers = {"x-goog-api-key": GOOGLE_API_KEY, "Content-Type": "application/json"}
 
     async with httpx.AsyncClient(timeout=120.0) as client:
@@ -177,4 +206,7 @@ async def _call_google(system: str, context: dict) -> str:
         raise RuntimeError(f"Google API {r.status_code}: {r.text[:200]}")
 
     data = r.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    raw = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    
+    # Clean up the output before sending to the browser
+    return clean_model_output(raw)
