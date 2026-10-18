@@ -1,24 +1,30 @@
 function speakText(text) {
   if ('speechSynthesis' in window) {
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
-    
+    window.speechSynthesis.cancel(); // Stop any currently playing audio
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
-    // Optional: Try to pick a specific voice (e.g., a male voice if available)
     window.speechSynthesis.speak(utterance);
   }
 }
 
-// Automatically speak the latest interviewer message on page load
-window.addEventListener('DOMContentLoaded', () => {
+function playLatestAudio() {
   const latestMessage = document.querySelector('.turn.interviewer[data-autoplay="true"]');
   if (latestMessage) {
     const text = latestMessage.getAttribute('data-text');
-    if (text) speakText(text);
+    if (text) {
+      speakText(text);
+      // Mark it as played so it doesn't repeat on future swaps
+      latestMessage.setAttribute('data-autoplay', 'false');
+    }
   }
-});
+}
+
+// Run on initial page load (e.g., when clicking "Start interview")
+window.addEventListener('DOMContentLoaded', playLatestAudio);
+
+// Run every time HTMX swaps the content (e.g., when clicking "Send answer")
+document.body.addEventListener('htmx:afterSwap', playLatestAudio);
 
 function startDictation() {
   const micBtn = document.getElementById('mic-btn');

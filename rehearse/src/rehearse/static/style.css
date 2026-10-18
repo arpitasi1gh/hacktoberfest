@@ -148,3 +148,21 @@ button.primary:hover { background: #6a5ce0; }
 .mic-btn:hover {
   background: #3e3e4a;
 }
+
+.home-form textarea {
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid #2e2e38;
+  border-radius: 9px;
+  background: #0e0e11;
+  color: #e8e8ec;
+  font: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+}
+.home-form textarea:focus {
+  outline: none;
+  border-color: #7c6cf0;
+  box-shadow: 0 0 0 3px rgba(124, 108, 240, 0.15);
+}
