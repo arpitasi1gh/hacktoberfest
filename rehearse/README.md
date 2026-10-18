@@ -2,7 +2,7 @@
 
 > A local-first AI interviewer that forces you to practice out loud, pushes back on vague answers, and gives you a strict, actionable report card. Works for any role, from Software Engineers to Marketers to Nutritionists.
 
-🔗 **Live Demo:** ``
+🔗 **Live Demo:** `https://rehearse-g3q4.onrender.com`  
 📊 **Repository:** `https://github.com/arpitasi1gh/hacktoberfest/tree/main/rehearse`
 
 ![Status](https://img.shields.io/badge/Status-Hacktoberfest_Submission-brightgreen?style=for-the-badge)
