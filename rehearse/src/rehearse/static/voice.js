@@ -1,31 +1,27 @@
-function speakText(text) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel(); // Stop any currently playing audio
+// 1. Function to find the latest message and speak it
+function speakLatestMessage() {
+  const latest = document.querySelector('.turn.interviewer.latest-message');
+  
+  if (latest && 'speechSynthesis' in window) {
+    const text = latest.innerText;
+    window.speechSynthesis.cancel(); // Stop any overlapping audio
+    
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 1.0;
-    utterance.pitch = 1.0;
     window.speechSynthesis.speak(utterance);
+    
+    // Remove the class so it doesn't speak again if the page re-renders
+    latest.classList.remove('latest-message');
   }
 }
 
-function playLatestAudio() {
-  const latestMessage = document.querySelector('.turn.interviewer[data-autoplay="true"]');
-  if (latestMessage) {
-    const text = latestMessage.getAttribute('data-text');
-    if (text) {
-      speakText(text);
-      // Mark it as played so it doesn't repeat on future swaps
-      latestMessage.setAttribute('data-autoplay', 'false');
-    }
-  }
-}
+// 2. Run on the very first page load (Start Interview)
+window.addEventListener('DOMContentLoaded', speakLatestMessage);
 
-// Run on initial page load (e.g., when clicking "Start interview")
-window.addEventListener('DOMContentLoaded', playLatestAudio);
+// 3. Run every time HTMX swaps the body (Send Answer)
+document.addEventListener('htmx:afterSwap', speakLatestMessage);
 
-// Run every time HTMX swaps the content (e.g., when clicking "Send answer")
-document.body.addEventListener('htmx:afterSwap', playLatestAudio);
-
+// 4. Keep the microphone function below
 function startDictation() {
   const micBtn = document.getElementById('mic-btn');
   const answerBox = document.getElementById('answer-box');

@@ -1,5 +1,6 @@
 """Rehearse: practice hard conversations with an AI interviewer."""
 
+import html
 import uuid
 from pathlib import Path
 
@@ -50,12 +51,7 @@ def home():
         </label>
         
         <label>Interview Focus
-          <select name="focus">
-            <option value="Behavioral">Behavioral (STAR method)</option>
-            <option value="Technical">Technical (Concepts & Architecture)</option>
-            <option value="System Design">System Design</option>
-            <option value="Mixed" selected>Mixed</option>
-          </select>
+          <input type="text" name="focus" placeholder="e.g. Technical, System Design, Behavioral, Clinical Case Study" required>
         </label>
 
         <label>Difficulty
@@ -73,8 +69,8 @@ def home():
           </select>
         </label>
 
-        <label>Job Description / Context (Optional)
-          <textarea name="job_desc" rows="4" placeholder="Paste the job description here. The AI will ground its questions in this text."></textarea>
+        <label>Context (Optional)
+          <textarea name="context" rows="4" placeholder="e.g. Paste a job description, a case study brief, or specific topics you want the interviewer to test you on."></textarea>
         </label>
 
         <button type="submit" class="primary">Start interview</button>
@@ -89,11 +85,11 @@ async def start(
     focus: str = Form(...), 
     difficulty: str = Form(...),
     tone: str = Form("Standard"),
-    job_desc: str = Form("")
+    context: str = Form("")
 ):
     session_id = str(uuid.uuid4())
     try:
-        opening = await interviewer_turn([], role, focus, difficulty, job_desc, tone)
+        opening = await interviewer_turn([], role, focus, difficulty, context, tone)
     except Exception as exc:
         return _page(f"""
         <header><h1>Rehearse</h1></header>
@@ -106,7 +102,7 @@ async def start(
         "focus": focus,
         "difficulty": difficulty,
         "tone": tone,
-        "job_desc": job_desc,
+        "context": context,
         "history": [{"role": "interviewer", "text": opening}],
     }
     return _page(_conversation_body(session_id))
@@ -123,7 +119,7 @@ async def reply(session_id: str = Form(...), answer: str = Form(...)):
     try:
         next_line = await interviewer_turn(
             session["history"], session["role"], session["focus"], 
-            session["difficulty"], session["job_desc"], session["tone"]
+            session["difficulty"], session["context"], session["tone"]
         )
     except Exception as exc:
         return _page(f"<div class='error'>Error: {exc}</div>")
@@ -144,22 +140,60 @@ async def feedback(session_id: str = Form(...)):
     except Exception as exc:
         return _page(f"<div class='error'>Error generating feedback: {exc}</div>")
 
+    # Helper to render score bars
+    def score_bar(label, score):
+        return f"""
+        <div style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; font-size: 0.9rem;">
+            <span>{label}</span>
+            <strong>{score}/10</strong>
+        </div>
+        <div style="background: #2e2e38; height: 6px; border-radius: 3px; margin-bottom: 1rem;">
+            <div style="background: #7c6cf0; width: {score * 10}%; height: 100%; border-radius: 3px;"></div>
+        </div>
+        """
+
     return _page(f"""
     <header>
       <h1>Interview Report</h1>
       <p class="tagline">{session['role']} · {session['focus']}</p>
     </header>
+    
     <section class="card">
-      <h2 style="margin-top:0; color: #7c6cf0;">Score: {report.get('score', 'N/A')} / 10</h2>
-      <p style="font-size:1.05rem; line-height:1.6;">{report.get('summary', '')}</p>
-      <h3 style="margin-bottom: 0.5rem; color: #e8e8ec;">What to improve:</h3>
-      <ul style="color: #b8b8c2; line-height: 1.6;">
-        <li>{report.get('improvement_1', '')}</li>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+        <h2 style="margin: 0; color: #7c6cf0; font-size: 2rem;">{report.get('overall_score', 0)} / 10</h2>
+        <span style="font-size: 0.8rem; color: #8a8a95; text-transform: uppercase;">Overall Score</span>
+      </div>
+      <p style="font-size: 1rem; line-height: 1.6; color: #b8b8c2; margin-bottom: 1.5rem;">
+        {report.get('summary', '')}
+      </p>
+
+      <h3 style="margin-bottom: 1rem; color: #e8e8ec; font-size: 1rem;">Competency Breakdown</h3>
+      {score_bar("Structure (CARL/STAR)", report.get('score_structure', 0))}
+      {score_bar("Depth & Specifics", report.get('score_depth', 0))}
+      {score_bar("Clarity & Tone", report.get('score_clarity', 0))}
+    </section>
+
+    <section class="card" style="background: #1e1e26; border-color: #4a4a5a;">
+      <h3 style="margin-top: 0; color: #e8e8ec; font-size: 1rem;">The Weakest Moment</h3>
+      <p style="font-style: italic; color: #f0a0a0; border-left: 3px solid #f0a0a0; padding-left: 1rem; margin-bottom: 1.5rem;">
+        "{report.get('weakest_moment', '')}"
+      </p>
+      
+      <h3 style="color: #7c6cf0; font-size: 1rem;">How a 10/10 candidate answers:</h3>
+      <p style="color: #b8b8c2; font-size: 0.95rem; line-height: 1.5;">
+        {report.get('ideal_response', '')}
+      </p>
+    </section>
+
+    <section class="card">
+      <h3 style="margin-top: 0; margin-bottom: 0.5rem; color: #e8e8ec; font-size: 1rem;">Top 2 Priorities for Next Time</h3>
+      <ul style="color: #b8b8c2; line-height: 1.6; padding-left: 1.2rem;">
+        <li style="margin-bottom: 0.5rem;">{report.get('improvement_1', '')}</li>
         <li>{report.get('improvement_2', '')}</li>
-        <li>{report.get('improvement_3', '')}</li>
       </ul>
     </section>
-    <a href="/" class="back-link">← Practice again</a>
+    
+    <a href="/" class="back-link" style="margin-top: 2rem;">← Practice again</a>
     """)
 
 
@@ -168,18 +202,15 @@ def _conversation_body(session_id: str) -> str:
     turns = ""
     for i, msg in enumerate(session["history"]):
         css = "interviewer" if msg["role"] == "interviewer" else "candidate"
-        # Only the very last message autoplays, and only if it's the interviewer
-        is_latest = (msg["role"] == "interviewer" and i == len(session["history"]) - 1)
-        autoplay = "true" if is_latest else "false"
         
-        # Clean the text for the HTML attribute (escape quotes, remove newlines)
-        clean_text = msg["text"].replace('"', '&quot;').replace('\n', ' ')
+        # Add a class to the very last interviewer message
+        is_latest = "latest-message" if (msg["role"] == "interviewer" and i == len(session["history"]) - 1) else ""
         
-        turns += f'<div class="turn {css}" data-autoplay="{autoplay}" data-text="{clean_text}">{msg["text"]}</div>'
+        turns += f'<div class="turn {css} {is_latest}">{msg["text"]}</div>'
 
     return f"""
     <header>
-      <h1>Rehearse</h1>
+      <h1>🎙️ Rehearse</h1>
       <p class="tagline">{session['role']} · {session['focus']} · {session['difficulty']}</p>
     </header>
     <section class="card conversation">{turns}</section>
@@ -192,7 +223,7 @@ def _conversation_body(session_id: str) -> str:
         <label>Your answer
           <div class="input-group">
             <textarea id="answer-box" name="answer" rows="3" required></textarea>
-            <button type="button" id="mic-btn" class="mic-btn" onclick="startDictation()">🎤</button>
+            <button type="button" id="mic-btn" class="mic-btn" onclick="startDictation()">🎙️</button>
           </div>
         </label>
         <button type="submit" class="primary">Send answer</button>
