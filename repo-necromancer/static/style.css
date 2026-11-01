@@ -1,0 +1,182 @@
+:root { 
+    --bg: #0a0a0c; 
+    --card: #141418; 
+    --text: #e8e8ec; 
+    --muted: #8a8a95; 
+    --accent: #ff3366; 
+    --border: #2a2a35; 
+}
+
+body { 
+    background: var(--bg); 
+    color: var(--text); 
+    font-family: -apple-system, system-ui, sans-serif; 
+    max-width: 900px; 
+    margin: 4rem auto; 
+    padding: 1rem; 
+    line-height: 1.6; 
+}
+
+.container { display: flex; flex-direction: column; gap: 2rem; }
+header { text-align: center; margin-bottom: 2rem; }
+h1 { color: var(--accent); letter-spacing: 2px; margin-bottom: 0.5rem; font-size: 2rem; }
+.subtitle { color: var(--muted); font-size: 1.1rem; max-width: 600px; margin: 0 auto; }
+
+/* Form */
+.input-group { display: flex; gap: 10px; flex-direction: column; }
+input { padding: 1rem; background: var(--card); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; }
+input:focus { outline: none; border-color: var(--accent); }
+button.primary-btn { background: var(--accent); color: #fff; padding: 1rem 2rem; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 1rem; transition: 0.2s; }
+button.primary-btn:hover:not(:disabled) { background: #e62050; }
+button.primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Fixed HTMX Loading Indicator */
+.htmx-indicator {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 200ms, visibility 200ms;
+    margin-top: 1.5rem;
+    color: var(--accent);
+    font-weight: bold;
+}
+.htmx-request .htmx-indicator { opacity: 1; visibility: visible; }
+.htmx-request.htmx-indicator { opacity: 1; visibility: visible; }
+
+.spinner { width: 20px; height: 20px; border: 3px solid rgba(255,51,102,0.3); border-radius: 50%; border-top-color: var(--accent); animation: spin 1s ease-in-out infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Report Header */
+.report-container { margin-top: 2rem; }
+.report-header { 
+    text-align: center; 
+    margin-bottom: 2rem; 
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--accent);
+}
+.report-header h1 { font-size: 1.8rem; margin: 0 0 0.5rem 0; }
+.target-repo { display: flex; justify-content: center; align-items: center; gap: 8px; font-family: monospace; font-size: 1.1rem; }
+.target-repo .label { color: var(--muted); font-weight: bold; }
+.target-repo .repo-path { color: #fff; background: #1c1c22; padding: 0.2rem 0.6rem; border-radius: 6px; }
+.repo-lifespan { color: var(--muted); font-size: 0.9rem; margin-top: 0.75rem; }
+
+/* Cards & Sections */
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.section { padding: 2rem; border-bottom: 1px solid var(--border); }
+.section:last-child { border-bottom: none; }
+.section-title { color: var(--accent); font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; margin-top: 0; margin-bottom: 1.5rem; }
+.content-block { color: #b0b0c0; font-size: 1rem; }
+.content-block p { margin-bottom: 1rem; }
+.content-block strong { color: var(--text); }
+.text-danger { color: #ff99b3; }
+
+/* Badges */
+.tech-badge {
+    background: #1c1c22;
+    border: 1px solid var(--accent);
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-family: monospace;
+    color: #ff99b3;
+    font-size: 0.85rem;
+}
+
+/* Sub Projects */
+.sub-project {
+    background: #111115;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+.sub-project:last-child { margin-bottom: 0; }
+.sub-project h4 {
+    margin-top: 0; color: var(--text); display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid var(--border); padding-bottom: 0.8rem; margin-bottom: 1rem;
+}
+.project-stack { font-size: 0.8rem; color: #a0a0b0; background: #1c1c22; padding: 0.2rem 0.6rem; border-radius: 4px; font-family: monospace; }
+.sub-project p { margin: 0.8rem 0; color: #b0b0c0; font-size: 0.95rem; }
+.sub-project code { background: #1c1c22; padding: 0.2rem 0.5rem; border-radius: 4px; color: #ff99b3; font-family: monospace; }
+.protocol-title { margin-top: 1.5rem; margin-bottom: 0.8rem; color: var(--accent); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
+
+/* Eulogy */
+.eulogy-text { font-style: italic; color: #d0d0e0; border-left: 3px solid var(--accent); padding-left: 1rem; font-size: 1.1rem; }
+
+/* Action List */
+.action-list { list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.8rem; }
+.action-list li { background: #1c1c22; padding: 1rem 1.5rem; border-radius: 8px; display: flex; gap: 1rem; align-items: flex-start; border-left: 3px solid var(--accent); }
+.step-icon { font-size: 1.2rem; }
+.step-text { color: #d0d0e0; }
+
+.sub-title {
+    color: var(--text);
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.testimony-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .testimony-grid { grid-template-columns: 1fr; }
+}
+
+.evidence-panel, .commit-panel {
+    background: #111115;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem;
+}
+
+.evidence-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.evidence-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    margin-bottom: 0.8rem;
+    color: #b0b0c0;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.evidence-list li::before {
+    content: "⚠️";
+    position: absolute;
+    left: 0;
+    top: 0;
+    font-size: 0.9rem;
+}
+
+/* Terminal Look for Commit */
+.terminal-box {
+    background: #050505;
+    border: 1px solid #333;
+    border-radius: 6px;
+    padding: 1rem;
+    font-family: monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #a0a0b0;
+}
+
+.terminal-prompt {
+    color: #33ff99;
+    font-weight: bold;
+}
+
+.terminal-text {
+    color: #ff99b3;
+}

@@ -1,0 +1,97 @@
+<div class="report-container">
+    <div class="report-header">
+        <h1>🪦 FORENSIC REPORT</h1>
+        <div class="target-repo">
+            <span class="label">TARGET:</span>
+            <span class="repo-path">{{ repo_name }}</span>
+        </div>
+        <div class="repo-lifespan">
+            Lifespan: {{ first_commit_date }} → {{ last_commit_date }}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="section">
+            <h3 class="section-title">🌍 Repository Overview</h3>
+            <div class="content-block">
+                <p><strong>Summary:</strong> {{ report.get('repo_overview', 'No summary available.') }}</p>
+                <p><strong>Global Tech Stack:</strong> 
+                    <span class="tech-badge">{{ report.get('global_tech_stack', 'Unknown') }}</span>
+                </p>
+            </div>
+        </div>
+
+        {% set projects = report.get('projects', []) %}
+        {% if projects|length == 1 %}
+            {% set project = projects[0] %}
+            <div class="section">
+                <h3 class="section-title">🏗️ Project Analysis</h3>
+                <div class="sub-project">
+                    <h4>📁 {{ project.get('folder_name', 'Root') }} 
+                        <span class="project-stack">{{ project.get('tech_stack', 'Unknown') }}</span>
+                    </h4>
+                    <p><strong>Architecture:</strong> {{ project.get('architecture_summary', 'N/A') }}</p>
+                    <p><strong>Core Components:</strong> {{ project.get('core_components', 'N/A') }}</p>
+                    <p><strong>Entry Point:</strong> <code>{{ project.get('entry_point', 'N/A') }}</code></p>
+                    <p><strong>Critical Issues:</strong> <span class="text-danger">{{ project.get('critical_issues', 'N/A') }}</span></p>
+                    
+                    <h5 class="protocol-title">Resurrection Protocol</h5>
+                    <ul class="action-list">
+                        {% for step in project.get('resurrection_plan', []) %}
+                        <li><span class="step-icon">🛠️</span> <span class="step-text">{{ step }}</span></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        {% elif projects|length > 1 %}
+            <div class="section">
+                <h3 class="section-title">🏗️ Sub-Project Analysis (Monorepo)</h3>
+                {% for project in projects %}
+                <div class="sub-project">
+                    <h4>📁 {{ project.get('folder_name', 'Unknown Folder') }} 
+                        <span class="project-stack">{{ project.get('tech_stack', 'Unknown Stack') }}</span>
+                    </h4>
+                    <p><strong>Architecture:</strong> {{ project.get('architecture_summary', 'N/A') }}</p>
+                    <p><strong>Core Components:</strong> {{ project.get('core_components', 'N/A') }}</p>
+                    <p><strong>Entry Point:</strong> <code>{{ project.get('entry_point', 'N/A') }}</code></p>
+                    <p><strong>Critical Issues:</strong> <span class="text-danger">{{ project.get('critical_issues', 'N/A') }}</span></p>
+                    
+                    <h5 class="protocol-title">Resurrection Protocol</h5>
+                    <ul class="action-list">
+                        {% for step in project.get('resurrection_plan', []) %}
+                        <li><span class="step-icon">🛠️</span> <span class="step-text">{{ step }}</span></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% set testimony = report.get('ghost_testimony', {}) %}
+        <div class="section">
+            <h3 class="section-title">👻 The Ghost's Testimony</h3>
+            <div class="content-block eulogy-text">
+                "{{ testimony.get('poetic_eulogy', 'The ghost is silent.') }}"
+            </div>
+            <div class="testimony-grid">
+                <div class="evidence-panel">
+                    <h4 class="sub-title">📉 Abandonment Evidence</h4>
+                    <ul class="evidence-list">
+                        {% for evidence in testimony.get('abandonment_evidence', []) %}
+                        <li>{{ evidence }}</li>
+                        {% else %}
+                        <li>No evidence found.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="commit-panel">
+                    <h4 class="sub-title">🪦 The Final Commit</h4>
+                    <div class="terminal-box">
+                        <span class="terminal-prompt">$ git commit -m</span><br>
+                        <span class="terminal-text">"{{ testimony.get('ghost_commit', 'No message left.') }}"</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

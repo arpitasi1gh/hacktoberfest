@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Repo Necromancer</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🪦 REPO NECROMANCER</h1>
+            <p class="subtitle">Paste a GitHub repository. The AI will perform a deep forensic archaeology to understand its purpose, its death, and how to resurrect it.</p>
+        </header>
+        
+        <div id="app">
+            <form hx-post="/analyze" hx-target="#result" hx-swap="innerHTML" hx-disabled-elt="find button">
+                <div class="input-group">
+                    <input type="text" name="repo_url" placeholder="https://github.com/owner/dead-repo" required>
+                    <button type="submit" class="primary-btn">Perform Autopsy</button>
+                </div>
+                
+                <div id="loading" class="htmx-indicator">
+                    <span class="spinner"></span> Summoning the ghost... Analyzing file tree and dependencies...
+                </div>
+            </form>
+            
+            <div id="result"></div>
+        </div>
+    </div>
+</body>
+</html>
