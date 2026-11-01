@@ -36,8 +36,7 @@ Perform an exhaustive analysis.
   ],
   "ghost_testimony": {{
     "poetic_eulogy": "A technical, melancholic 2-sentence summary of its death based on missing tests or unfinished code.",
-    "abandonment_evidence": ["Technical evidence 1", "Technical evidence 2", "Technical evidence 3"],
-    "ghost_commit": "A cynical commit message string only."
+    "abandonment_evidence": ["Technical evidence 1", "Technical evidence 2", "Technical evidence 3"]
   }}
 }}
 """

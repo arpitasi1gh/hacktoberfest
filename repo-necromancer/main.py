@@ -36,7 +36,9 @@ async def analyze(request: Request, repo_url: str = Form(...)):
                 "report": report, 
                 "repo_name": f"{owner}/{repo}",
                 "first_commit_date": data.get("first_commit_date", "Unknown"),
-                "last_commit_date": data.get("last_commit_date", "Unknown")
+                "last_commit_date": data.get("last_commit_date", "Unknown"),
+                "first_commit_msg": data.get("first_commit_msg", "Unknown"),
+                "last_commit_msg": data.get("last_commit_msg", "Unknown")
             }
         )
     except Exception as e:

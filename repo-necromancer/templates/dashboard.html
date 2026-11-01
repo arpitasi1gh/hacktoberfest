@@ -5,9 +5,6 @@
             <span class="label">TARGET:</span>
             <span class="repo-path">{{ repo_name }}</span>
         </div>
-        <div class="repo-lifespan">
-            Lifespan: {{ first_commit_date }} → {{ last_commit_date }}
-        </div>
     </div>
 
     <div class="card">
@@ -85,10 +82,20 @@
                     </ul>
                 </div>
                 <div class="commit-panel">
-                    <h4 class="sub-title">🪦 The Final Commit</h4>
+                    <h4 class="sub-title">📜 Actual Lifespan & Commits</h4>
+                    
+                    <div class="terminal-box" style="margin-bottom: 1rem;">
+                        <span class="terminal-prompt">$ git log --reverse | head -n 1</span><br>
+                        <span class="terminal-text">"{{ first_commit_msg }}"</span>
+                        <br>
+                        <span style="color: #8a8a95; font-size: 0.8rem;">Date: {{ first_commit_date }}</span>
+                    </div>
+                    
                     <div class="terminal-box">
-                        <span class="terminal-prompt">$ git commit -m</span><br>
-                        <span class="terminal-text">"{{ testimony.get('ghost_commit', 'No message left.') }}"</span>
+                        <span class="terminal-prompt">$ git log -1</span><br>
+                        <span class="terminal-text">"{{ last_commit_msg }}"</span>
+                        <br>
+                        <span style="color: #8a8a95; font-size: 0.8rem;">Date: {{ last_commit_date }}</span>
                     </div>
                 </div>
             </div>
