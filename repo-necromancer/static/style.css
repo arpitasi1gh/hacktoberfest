@@ -102,10 +102,14 @@ button.primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .sub-project code { background: #1c1c22; padding: 0.2rem 0.5rem; border-radius: 4px; color: #ff99b3; font-family: monospace; }
 .protocol-title { margin-top: 1.5rem; margin-bottom: 0.8rem; color: var(--accent); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px; }
 
-/* Eulogy */
-.eulogy-text { font-style: italic; color: #d0d0e0; border-left: 3px solid var(--accent); padding-left: 1rem; font-size: 1.1rem; }
+.eulogy-text { 
+    font-style: italic; 
+    color: #d0d0e0; 
+    border-left: 3px solid var(--accent); 
+    padding-left: 1rem; 
+    font-size: 1.1rem; 
+}
 
-/* Action List */
 .action-list { list-style-type: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.8rem; }
 .action-list li { background: #1c1c22; padding: 1rem 1.5rem; border-radius: 8px; display: flex; gap: 1rem; align-items: flex-start; border-left: 3px solid var(--accent); }
 .step-icon { font-size: 1.2rem; }
@@ -131,8 +135,9 @@ button.primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
 .evidence-panel, .commit-panel {
-    background: #111115;
+    background: #1c1c22; /* Matches the action-list background */
     border: 1px solid var(--border);
+    border-left: 3px solid var(--accent); /* Adds the thick pink border */
     border-radius: 8px;
     padding: 1.5rem;
 }
@@ -180,3 +185,56 @@ button.primary-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .terminal-text {
     color: #ff99b3;
 }
+
+.commit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.commit-card {
+    background: #050505;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.5rem 1rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.death-card {
+    border-color: var(--accent); /* Red border for death */
+}
+
+.commit-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+}
+
+.death-card .commit-label {
+    color: var(--accent);
+}
+
+.commit-date {
+    font-family: monospace;
+    font-size: 1.1rem;
+    color: var(--text);
+    font-weight: bold;
+    margin-bottom: 1rem;
+}
+
+.commit-msg {
+    font-size: 0.85rem;
+    color: #a0a0b0;
+    font-style: italic;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.commit-msg::before { content: '“'; }
+.commit-msg::after { content: '”'; }

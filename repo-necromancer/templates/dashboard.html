@@ -1,6 +1,6 @@
 <div class="report-container">
     <div class="report-header">
-        <h1>🪦 FORENSIC REPORT</h1>
+        <h1>🥀 FORENSIC REPORT</h1>
         <div class="target-repo">
             <span class="label">TARGET:</span>
             <span class="repo-path">{{ repo_name }}</span>
@@ -82,20 +82,22 @@
                     </ul>
                 </div>
                 <div class="commit-panel">
-                    <h4 class="sub-title">📜 Actual Lifespan & Commits</h4>
+                    <h4 class="sub-title">📜 Repository Lifespan</h4>
                     
-                    <div class="terminal-box" style="margin-bottom: 1rem;">
-                        <span class="terminal-prompt">$ git log --reverse | head -n 1</span><br>
-                        <span class="terminal-text">"{{ first_commit_msg }}"</span>
-                        <br>
-                        <span style="color: #8a8a95; font-size: 0.8rem;">Date: {{ first_commit_date }}</span>
-                    </div>
-                    
-                    <div class="terminal-box">
-                        <span class="terminal-prompt">$ git log -1</span><br>
-                        <span class="terminal-text">"{{ last_commit_msg }}"</span>
-                        <br>
-                        <span style="color: #8a8a95; font-size: 0.8rem;">Date: {{ last_commit_date }}</span>
+                    <div class="commit-grid">
+                        <!-- Birth -->
+                        <div class="commit-card">
+                            <div class="commit-label">Birth</div>
+                            <div class="commit-date">{{ first_commit_date }}</div>
+                            <div class="commit-msg">"{{ first_commit_msg }}"</div>
+                        </div>
+                        
+                        <!-- Death -->
+                        <div class="commit-card death-card">
+                            <div class="commit-label">Death</div>
+                            <div class="commit-date">{{ last_commit_date }}</div>
+                            <div class="commit-msg">"{{ last_commit_msg }}"</div>
+                        </div>
                     </div>
                 </div>
             </div>

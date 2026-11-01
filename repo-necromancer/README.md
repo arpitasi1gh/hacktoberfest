@@ -2,7 +2,8 @@
 
 > A local-first AI tool that channels the ghost of an abandoned GitHub repository and forces it to speak its final eulogy.
 
-🔗 **Repository:** `https://github.com/arpitasi1gh/hacktoberfest/blob/main/repo-necromancer`
+🔗 **Live Demo:** [https://repo-necromancer.onrender.com](https://repo-necromancer.onrender.com)  
+📊 **Repository:** [https://github.com/arpitasi1gh/hacktoberfest/tree/main/repo-necromancer](https://github.com/arpitasi1gh/hacktoberfest/tree/main/repo-necromancer)
 
 ![Status](https://img.shields.io/badge/Status-Hacktoberfest_Submission-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)

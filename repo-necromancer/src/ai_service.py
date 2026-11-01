@@ -12,7 +12,6 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:4b")
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
-# HARDCODED TO THE NEWEST WORKING MODEL
 GOOGLE_MODEL = "gemini-3.8-flash" 
 GOOGLE_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GOOGLE_MODEL}:generateContent"
 
@@ -50,7 +49,7 @@ async def analyze_repo(data: dict) -> dict:
         first_commit_date=data.get('first_commit_date', 'Unknown'),
         last_commit_date=data.get('last_commit_date', 'Unknown'),
         top_level_folders=", ".join(data.get('top_level_folders', [])),
-        tree=", ".join(data.get('tree', [])[:300]),
+        tree=", ".join(data.get('tree', [])[:150]), # Reduced for local models
         commits="\n".join(data.get('commits', [])),
         key_files=key_files_str
     )
@@ -62,7 +61,11 @@ async def analyze_repo(data: dict) -> dict:
         try:
             payload = {
                 "model": OLLAMA_MODEL, "prompt": prompt, "stream": False,
-                "format": "json", "options": {"temperature": 0.1}
+                "format": "json", 
+                "options": {
+                    "temperature": 0.1,
+                    "num_ctx": 8192
+                }
             }
             async with httpx.AsyncClient(timeout=120.0) as client:
                 res = await client.post(OLLAMA_URL, json=payload)
