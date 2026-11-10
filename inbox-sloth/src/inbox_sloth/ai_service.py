@@ -10,7 +10,7 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:4b")
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
-GOOGLE_MODEL = os.getenv("GOOGLE_MODEL", "gemini-1.5-flash")
+GOOGLE_MODEL = os.getenv("GOOGLE_MODEL", "gemini-2.5-flash")
 GOOGLE_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GOOGLE_MODEL}:generateContent"
 
 async def generate_replies(email: str, tone_context: str) -> dict:
