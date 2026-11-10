@@ -2,7 +2,7 @@
 
 > A local-first AI tool that drafts replies to your most stressful emails in your exact voice. No cloud, no generic corporate fluff.
 
-🔗 **Live Demo:** `https://inbox-sloth.onrender.com` _(replace after deploy)_  
+🔗 **Live Demo:** `https://inbox-sloth.onrender.com/`  
 📊 **Repository:** `https://github.com/arpitasi1gh/hacktoberfest/tree/main/inbox-sloth`  
 ✍️ **DEV Write-up:** `https://dev.to/arpitasi1gh/i-built-inbox-sloth-the-local-first-ai-ghostwriter-for-your-most-stressful-emails-478n`
 
@@ -42,6 +42,21 @@
         <li><a href="#-connect-with-me">🤝 Connect With Me</a></li>
         <li><a href="#-license">📝 License</a></li>
       </ul>
+    </td>
+  </tr>
+</table>
+
+---
+
+<table>
+  <tr>
+    <td>
+      <p align="center"><b>Demo Image 01</b></p>
+      <img width="1470" height="885" alt="Demo Image 01" src="https://github.com/user-attachments/assets/e6ec7a4a-b2e6-4fe5-ba1d-b7844bf1f29f" />
+    </td>
+    <td>
+      <p align="center"><b>Demo Image 02</b></p>
+      <img width="1467" height="879" alt="Screenshot 2026-11-11 at 3 21 50 AM" src="https://github.com/user-attachments/assets/d4589bb2-a9f6-40ae-aa65-817495c78b9d" />
     </td>
   </tr>
 </table>
