@@ -3,7 +3,8 @@
 > A local-first AI interviewer that forces you to practice out loud, pushes back on vague answers, and gives you a strict, actionable report card. Works for any role, from Software Engineers to Marketers to Nutritionists.
 
 🔗 **Live Demo:** `https://rehearse-g3q4.onrender.com`  
-📊 **Repository:** `https://github.com/arpitasi1gh/hacktoberfest/tree/main/rehearse`
+📊 **Repository:** `https://github.com/arpitasi1gh/hacktoberfest/tree/main/rehearse`  
+✍️ **DEV Write-up:** `https://dev.to/arpitasi1gh/i-built-rehearse-to-sell-a-voice-first-local-first-ai-interview-coach-33c9`
 
 ![Status](https://img.shields.io/badge/Status-Hacktoberfest_Submission-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
@@ -44,6 +45,29 @@
         <li><a href="#-license">📝 License</a></li>
         <li><a href="#-show-your-support">⭐ Show Your Support</a></li>
       </ul>
+    </td>
+  </tr>
+</table>
+
+-----
+
+<table>
+  <tr>
+    <td>
+      <p align="center"><b>Demo Image 01</b></p>
+      <img width="1470" height="881" alt="Screenshot 2026-11-11 at 1 31 28 AM" src="https://github.com/user-attachments/assets/661b4895-f7ab-467b-8364-b7986fcd9227" />
+    </td>
+    <td>
+      <p align="center"><b>Demo Image 02</b></p>
+      <img width="1470" height="834" alt="Screenshot 2026-11-11 at 1 49 16 AM" src="https://github.com/user-attachments/assets/28eb4ab0-938a-4a72-9988-2337b8e21a8e" />
+    </td>
+    <td>
+      <p align="center"><b>Demo Image 03</b></p>
+      <img width="1470" height="884" alt="Screenshot 2026-11-11 at 1 52 19 AM" src="https://github.com/user-attachments/assets/a687e459-380e-4ef3-8f29-94ed06ab17aa" />
+    </td>
+    <td>
+      <p align="center"><b>Demo Image 04</b></p>
+      <img width="1251" height="736" alt="Screenshot 2026-11-11 at 1 53 28 AM" src="https://github.com/user-attachments/assets/d6f9ce4a-a8ee-4629-bd83-fabc32d72a72" />
     </td>
   </tr>
 </table>
