@@ -3,7 +3,7 @@
 > A local-first AI app that answers one question: **when should you go outside today, and where?** You give it four numbers. It finds a real place near you and writes one specific action for that window.
 
 🔗 **Live Demo:** `https://hacktoberfest-m24i.onrender.com`  
-📊 **Repository:** `https://github.com/arpitasi1gh/hacktoberfest/tree/main/greenstep`
+📊 **Repository:** `https://github.com/arpitasi1gh/hacktoberfest/tree/main/greenstep`  
 ✍️ **DEV Write-up:** `https://dev.to/arpitasi1gh/i-built-greenstep-an-open-source-app-that-picks-your-next-walk-ke3`
 
 ![Status](https://img.shields.io/badge/Status-Hacktoberfest_Submission-brightgreen?style=for-the-badge)
