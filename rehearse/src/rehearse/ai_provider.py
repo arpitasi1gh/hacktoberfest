@@ -2,7 +2,7 @@
 
 import json
 import os
-
+import re
 import httpx
 from dotenv import load_dotenv
 
@@ -13,9 +13,32 @@ OLLAMA_URL = os.getenv("OLLAMA_URL", "http://localhost:11434/api/generate")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "gemma3:4b")
 
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
-GOOGLE_MODEL = os.getenv("GOOGLE_MODEL", "gemma-4-26b-a4b-it")
+# NOTE: Google changes model names frequently. If you get a 404 error on Render, 
+# change this to "gemini-1.5-flash" or "gemini-2.5-flash".
+GOOGLE_MODEL = os.getenv("GOOGLE_MODEL", "gemini-1.5-flash") 
 GOOGLE_URL = f"https://generativelanguage.googleapis.com/v1beta/models/{GOOGLE_MODEL}:generateContent"
 
+def extract_clean_text(raw_text: str) -> str:
+    """Bulletproof parser to strip markdown and extract the 'question' field."""
+    raw_text = raw_text.replace("```json", "").replace("```", "").strip()
+    
+    # 1. Look for JSON objects from bottom to top
+    matches = re.findall(r'\{.*\}', raw_text, re.DOTALL)
+    for match in reversed(matches):
+        try:
+            data = json.loads(match)
+            if "question" in data:
+                return data["question"].strip()
+        except Exception:
+            pass
+            
+    # 2. Look for the last string in double quotes
+    quotes = re.findall(r'"([^"]{10,})"', raw_text)
+    if quotes:
+        return quotes[-1].strip()
+
+    # 3. Fallback: just return the cleaned text
+    return raw_text
 
 def build_system_prompt(role: str, focus: str, difficulty: str, job_desc: str, tone: str) -> str:
     """TCCo & DO-AVOID-INCLUDE-RETURN framework for the interviewer."""
@@ -23,7 +46,7 @@ def build_system_prompt(role: str, focus: str, difficulty: str, job_desc: str, t
     
     tone_rule = ""
     if tone == "Stress":
-        tone_rule = "- TONE: You are a hostile, impatient interviewer. Interrupt vague answers, sigh audibly (use text like '*sigh*'), and push hard. Do not give them a moment to relax. Do not say 'great' or 'okay'."
+        tone_rule = "- TONE: You are a hostile, impatient interviewer. Interrupt vague answers, sigh audibly (use text like '*sigh*'), and push hard. Do not give them a moment to relax."
     else:
         tone_rule = "- TONE: Professional, direct, but respectful. You are evaluating them, not torturing them."
 
@@ -41,37 +64,28 @@ Conduct a realistic, high-stakes interview. You ask one question, wait for the c
 
 # CONSTRAINTS & GROUNDING RULES
 {tone_rule}
-- Ask exactly ONE question per turn. Never ask multi-part questions.
+- Ask exactly ONE question per turn.
 - Ground your questions in the Job Description and Focus. Do not hallucinate irrelevant topics.
 - Do NOT answer your own question.
 - Stay in character. Never mention you are an AI.
-- Do not state outdated facts as current (e.g., "React class components are the standard").
 
-# ADVANCED INTERVIEWER TACTICS (DO THESE)
-1. **The "We vs I" Test:** If they hide behind "we" (e.g., "We built a system"), force them to isolate their contribution: "What was *your* specific contribution to that?"
-2. **The Trade-off Test:** If they make a technical or strategic choice, ask what they sacrificed: "What was the trade-off there? What did you give up?"
-3. **The Edge Case / Failure Test:** Ask how their solution handles failure: "What happens if this scales 10x?" or "What was the biggest risk with that approach?"
-4. **Interruption:** If their answer is rambling for more than 3 sentences, cut them off with a direct follow-up.
-5. **STAR / CARL Method Enforcement:** If they don't state the *Result*, ask: "What was the measurable outcome?" If they don't state the *Learning*, ask: "Looking back, what would you do differently next time?" or "What did you learn from that?"
+# ADVANCED INTERVIEWER TACTICS
+1. **The "We vs I" Test:** If they hide behind "we", force them to isolate their contribution.
+2. **The Trade-off Test:** Ask what they sacrificed for a choice.
+3. **The Edge Case Test:** Ask how their solution handles failure.
+4. **STAR / CARL Enforcement:** If they don't state the Result, ask "What was the measurable outcome?" If they don't state the Learning, ask "What would you do differently next time?"
 
 # DO-AVOID-INCLUDE
-- DO: Push for specifics. If they mention a result or an optimization, ask for metrics. If they mention a tool, ask why they chose it.
+- DO: Push for specifics. Ask for metrics and tools.
 - AVOID: Softening language. Never say: "great", "good", "I understand", "let's try", "interesting", "that makes sense".
 - INCLUDE: A concise follow-up that drills into the weakest part of their previous answer.
 
 # CRITICAL OUTPUT FORMAT
-You must output your response as a JSON object. Do not output any thinking or planning outside the JSON.
+You must output your response as a JSON object. Do not output any thinking outside the JSON.
 {{
   "question": "Your spoken question here."
 }}
-
-# FALLBACK INSTRUCTION
-If the candidate says "I don't know" or gives a highly vague answer, do not switch topics. Pick one keyword they used and ask them to define it or provide a concrete example.
-
-# MODEL LIMITATIONS & PRIVACY
-- If the candidate shares sensitive personal info (health, family), pivot immediately back to the interview question.
 """
-
 
 async def interviewer_turn(history: list[dict], role: str, focus: str, difficulty: str, job_desc: str, tone: str = "Standard") -> str:
     system_prompt = build_system_prompt(role, focus, difficulty, job_desc, tone)
@@ -82,56 +96,47 @@ async def interviewer_turn(history: list[dict], role: str, focus: str, difficult
         user_message = "Continue the interview. Respond with your next line."
 
     context = {"history": history, "instruction": user_message}
+    raw_response = ""
 
-    # 1. If explicitly set to API, skip local entirely
     if AI_PROVIDER == "api":
-        return await _call_google(system_prompt, context)
-        
-    # 2. Try local first. If it fails (Ollama not running), fallback to API.
-    try:
-        return await _call_ollama(system_prompt, context)
-    except Exception as exc:
-        print(f"Ollama failed ({exc}). Falling back to Google API...")
-        return await _call_google(system_prompt, context)
+        raw_response = await _call_google(system_prompt, context)
+    else:
+        try:
+            raw_response = await _call_ollama(system_prompt, context)
+        except Exception:
+            raw_response = await _call_google(system_prompt, context)
+            
+    return extract_clean_text(raw_response)
 
 
 async def generate_feedback(transcript: str, role: str, focus: str) -> dict:
-    """Analyze the transcript and return a generic, role-agnostic JSON report."""
-    
-    prompt = f"""You are a Senior Hiring Manager at a top-tier company. 
-You just finished interviewing a candidate for the role of '{role}' with a focus on '{focus}'.
-
-Review the transcript below. Adapt your evaluation to the specific domain (e.g., if the role is a Chef, evaluate culinary depth; if a Developer, evaluate technical architecture; if a Marketer, evaluate strategy).
-
+    prompt = f"""You are a Senior Hiring Manager reviewing a {focus} interview for a {role} role.
 Transcript:
 {transcript}
 
 Return ONLY a JSON object with exactly these fields:
 {{
   "overall_score": integer (1 to 10),
-  "summary": "one paragraph of direct, honest feedback on their overall performance",
-  "score_structure": integer (1 to 10, how well they structured their answers using CARL/STAR),
-  "score_depth": integer (1 to 10, how specific, metric-driven, and deep their answers were),
-  "score_clarity": integer (1 to 10, how clear and concise their communication was),
-  "weakest_moment": "Quote the weakest thing they actually said in the interview.",
-  "ideal_response": "How a 10/10 candidate would have answered that exact same question.",
-  "improvement_1": "the single most important thing they need to fix",
-  "improvement_2": "second most important thing"
+  "summary": "one paragraph of direct, honest feedback",
+  "score_structure": integer (1 to 10),
+  "score_depth": integer (1 to 10),
+  "score_clarity": integer (1 to 10),
+  "weakest_moment": "Quote the weakest thing they said.",
+  "ideal_response": "How a 10/10 candidate would have answered that exact question.",
+  "improvement_1": "most important fix",
+  "improvement_2": "second most important fix"
 }}
 Do not use markdown. Return only the JSON. First character must be {{, last must be }}.
 """
 
     payload = {"contents": [{"role": "user", "parts": [{"text": prompt}]}], "generationConfig": {"temperature": 0.2}}
     
-    # 1. If explicitly set to API, skip local
     if AI_PROVIDER == "api":
         headers = {"x-goog-api-key": GOOGLE_API_KEY, "Content-Type": "application/json"}
         async with httpx.AsyncClient(timeout=60.0) as client:
             r = await client.post(GOOGLE_URL, json=payload, headers=headers)
             r.raise_for_status()
         raw = r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
-        
-    # 2. Try local first, fallback to API
     else:
         try:
             payload_ollama = {"model": OLLAMA_MODEL, "prompt": prompt, "stream": False, "format": "json"}
@@ -140,14 +145,12 @@ Do not use markdown. Return only the JSON. First character must be {{, last must
                 r.raise_for_status()
             raw = r.json()["response"].strip()
         except Exception as exc:
-            print(f"Ollama failed for feedback ({exc}). Falling back to Google API...")
             headers = {"x-goog-api-key": GOOGLE_API_KEY, "Content-Type": "application/json"}
             async with httpx.AsyncClient(timeout=60.0) as client:
                 r = await client.post(GOOGLE_URL, json=payload, headers=headers)
                 r.raise_for_status()
             raw = r.json()["candidates"][0]["content"]["parts"][0]["text"].strip()
 
-    # Clean up JSON if the model wrapped it in markdown
     if "```" in raw:
         raw = raw.split("```")[1]
         if raw.startswith("json"):
@@ -166,41 +169,6 @@ async def _call_ollama(system: str, context: dict) -> str:
         r.raise_for_status()
     return r.json()["response"].strip()
 
-
-def clean_model_output(text: str) -> str:
-    """Extract the final question, ignoring all hallucinated thinking."""
-    import re
-    import json
-    
-    # 1. Clean markdown
-    text = text.replace("```json", "").replace("```", "").strip()
-    
-    # 2. Find all JSON objects in the text, and check them from bottom to top
-    # (The real answer is almost always the last one it generates)
-    matches = re.findall(r'\{.*?\}', text, re.DOTALL)
-    for match in reversed(matches):
-        try:
-            data = json.loads(match)
-            if "question" in data:
-                return data["question"].strip()
-        except Exception:
-            pass
-            
-    # 3. If JSON completely fails, find the last thing inside double quotes
-    quotes = re.findall(r'"([^"]{10,})"', text)
-    if quotes:
-        return quotes[-1].strip()
-
-    # 4. Last resort: find the last line that ends in a question mark or period
-    lines = [l.strip() for l in text.split('\n') if l.strip()]
-    for line in reversed(lines):
-        if line.endswith('?') or line.endswith('.'):
-            # Clean up leading bullets or asterisks
-            return re.sub(r'^[\*\-\s]+', '', line)
-
-    return text
-
-
 async def _call_google(system: str, context: dict) -> str:
     if not GOOGLE_API_KEY:
         raise RuntimeError("GOOGLE_API_KEY not set")
@@ -216,7 +184,4 @@ async def _call_google(system: str, context: dict) -> str:
         raise RuntimeError(f"Google API {r.status_code}: {r.text[:200]}")
 
     data = r.json()
-    raw = data["candidates"][0]["content"]["parts"][0]["text"].strip()
-    
-    # Clean up the output before sending to the browser
-    return clean_model_output(raw)
+    return data["candidates"][0]["content"]["parts"][0]["text"].strip()
