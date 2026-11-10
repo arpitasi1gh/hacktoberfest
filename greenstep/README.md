@@ -3,7 +3,8 @@
 > A local-first AI app that answers one question: **when should you go outside today, and where?** You give it four numbers. It finds a real place near you and writes one specific action for that window.
 
 🔗 **Live Demo:** `https://hacktoberfest-m24i.onrender.com`  
-📊 **Repository:** `https://github.com/arpitasi1gh/hacktoberfest/tree/main/greenstep`
+📊 **Repository:** `https://github.com/arpitasi1gh/hacktoberfest/tree/main/greenstep`  
+✍️ **DEV Write-up:** `https://dev.to/arpitasi1gh/i-built-greenstep-an-open-source-app-that-picks-your-next-walk-ke3`
 
 ![Status](https://img.shields.io/badge/Status-Hacktoberfest_Submission-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
@@ -46,6 +47,21 @@
         <li><a href="#-license">📝 License</a></li>
         <li><a href="#-show-your-support">⭐ Show Your Support</a></li>
       </ul>
+    </td>
+  </tr>
+</table>
+
+---
+
+<table>
+  <tr>
+    <td>
+      <p align="center"><b>Demo Image 01</b></p>
+      <img width="1470" height="881" alt="Screenshot 2026-11-11 at 1 06 35 AM" src="https://github.com/user-attachments/assets/7888c130-a6a0-42a9-a9fc-bc898be4b4ef" />
+    </td>
+    <td>
+      <p align="center"><b>Demo Image 02</b></p>
+      <img width="1411" height="850" alt="Screenshot 2026-11-11 at 1 06 09 AM" src="https://github.com/user-attachments/assets/55d0ea4a-3a30-4871-b058-618fcbb2e0e8" />
     </td>
   </tr>
 </table>
@@ -131,7 +147,7 @@ greenstep/
 ├── src/
 │   └── greenstep/
 │       ├── __init__.py
-│       ├── main.py                   # FastAPI app, routes, HTML shell
+│       ├── main.py                   # FastAPI app, routes, and inline HTML
 │       ├── ai_provider.py            # Local Ollama / cloud Google AI switch
 │       ├── weather.py                # Nominatim geocoding + Open-Meteo
 │       ├── places.py                 # SerpApi Google Maps wrapper
@@ -139,9 +155,7 @@ greenstep/
 │       └── static/
 │           └── style.css             # Dark-only theme
 ├── .env                              # API keys (gitignored)
-├── .gitignore
 ├── pyproject.toml
-├── uv.lock
 └── README.md
 ```
 
