@@ -52,6 +52,21 @@
 
 ---
 
+<table>
+  <tr>
+    <td>
+      <p align="center"><b>Demo Image 01</b></p>
+      <img width="1470" height="881" alt="Screenshot 2026-11-11 at 1 06 35 AM" src="https://github.com/user-attachments/assets/7888c130-a6a0-42a9-a9fc-bc898be4b4ef" />
+    </td>
+    <td>
+      <p align="center"><b>Demo Image 02</b></p>
+      <img width="1411" height="850" alt="Screenshot 2026-11-11 at 1 06 09 AM" src="https://github.com/user-attachments/assets/55d0ea4a-3a30-4871-b058-618fcbb2e0e8" />
+    </td>
+  </tr>
+</table>
+
+---
+
 ## 💡 The Problem I Solved
 
 Every "go outside" reminder tells you the same thing: take a break, get some air, go for a walk. The advice is correct and useless.
