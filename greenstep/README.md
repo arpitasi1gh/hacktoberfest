@@ -4,6 +4,7 @@
 
 🔗 **Live Demo:** `https://hacktoberfest-m24i.onrender.com`  
 📊 **Repository:** `https://github.com/arpitasi1gh/hacktoberfest/tree/main/greenstep`
+✍️ **DEV Write-up:** `https://dev.to/arpitasi1gh/i-built-greenstep-an-open-source-app-that-picks-your-next-walk-ke3`
 
 ![Status](https://img.shields.io/badge/Status-Hacktoberfest_Submission-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
@@ -146,7 +147,7 @@ greenstep/
 ├── src/
 │   └── greenstep/
 │       ├── __init__.py
-│       ├── main.py                   # FastAPI app, routes, HTML shell
+│       ├── main.py                   # FastAPI app, routes, and inline HTML
 │       ├── ai_provider.py            # Local Ollama / cloud Google AI switch
 │       ├── weather.py                # Nominatim geocoding + Open-Meteo
 │       ├── places.py                 # SerpApi Google Maps wrapper
@@ -154,9 +155,7 @@ greenstep/
 │       └── static/
 │           └── style.css             # Dark-only theme
 ├── .env                              # API keys (gitignored)
-├── .gitignore
 ├── pyproject.toml
-├── uv.lock
 └── README.md
 ```
 
