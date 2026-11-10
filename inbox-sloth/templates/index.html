@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>🦥 Inbox Sloth</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        function copyText(btn) {
+            const text = btn.closest('.card').querySelector('.reply-text').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const original = btn.innerText;
+                btn.innerText = 'Copied!';
+                btn.style.color = '#33ff99';
+                setTimeout(() => {
+                    btn.innerText = original;
+                    btn.style.color = 'var(--accent)';
+                }, 2000);
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>🦥 Inbox Sloth</h1>
+    <p style="text-align: center; color: #8a8a95;">Paste a stressful email. Get 3 replies in your tone.</p>
+    
+    <div class="card">
+        <form hx-post="/generate" hx-target="#results" hx-swap="innerHTML" hx-disabled-elt="find button" hx-indicator="#loading">
+            <label>Incoming Email</label>
+            <textarea name="email" rows="6" required placeholder="Paste the email you're avoiding..."></textarea>
+            <button type="submit">Draft Replies</button>
+            <div id="loading" class="htmx-indicator">Ghostwriting...</div>
+        </form>
+    </div>
+
+    <div class="card">
+        <details>
+            <summary style="cursor: pointer; color: #8a8a95;">Teach the AI your tone (Optional)</summary>
+            <form hx-post="/teach" hx-target="#teach-msg" style="margin-top: 1rem;">
+                <textarea name="tone" rows="4" required placeholder="Paste a past email you wrote..."></textarea>
+                <button type="submit" style="background: #2e2e38;">Save Tone Example</button>
+                <p id="teach-msg" style="color: var(--accent); text-align: center; margin-top: 0.5rem;"></p>
+            </form>
+        </details>
+    </div>
+
+    <div id="results"></div>
+</body>
+</html>
