@@ -1,24 +1,52 @@
 <div class="action-card">
-    <p class="action-text">{{ action.action }}</p>
-    <p class="action-why">{{ action.why }}</p>
-    <div class="action-meta">
-        <span>First step: {{ action.first_step }}</span>
-        <span class="timebox">{{ action.timebox_minutes }} min</span>
-    </div>
-    <p class="fallback">{{ action.fallback }}</p>
+    <div class="action-kicker"><span class="sparkle">✦</span> YOUR NEXT STEP</div>
     
-    <div class="feedback-row">
+    <div class="action-main">
+        <span class="action-label">FOCUS ON THIS</span>
+        <h2>{{ action.action }}</h2>
+    </div>
+    
+    <p class="action-why">{{ action.why }}</p>
+    
+    <div class="action-detail">
+        <span class="detail-label">START HERE</span>
+        <p>{{ action.first_step }}</p>
+    </div>
+
+    <div class="action-support">
+        <div class="timebox">
+            <span class="timebox-label">AVAILABLE TIME</span>
+            <span class="timebox-value">⏱ {{ action.timebox_minutes }} min</span>
+        </div>
+        <div class="fallback">
+            <span class="fallback-label">IF YOU NEED A SMALLER STEP</span>
+            <span class="fallback-text">{{ action.fallback }}</span>
+        </div>
+    </div>
+
+    <div class="suggestion-progress">
+        <div class="suggestion-progress-heading">
+            <label>Task progress</label>
+            <output>{{ task_progress }}%</output>
+        </div>
+        <div class="suggestion-progress-track">
+            <div class="suggestion-progress-bar" style="width: {{ task_progress }}%;"></div>
+        </div>
+        <span class="field-hint">Move progress forward to mark this session done. The task is complete at 100%.</span>
+    </div>
+
+    <div class="feedback-actions">
         <form hx-post="/feedback/{{ action_id }}" hx-target="closest .action-card" hx-swap="outerHTML">
             <input type="hidden" name="outcome" value="done">
-            <button type="submit" class="feedback-btn done">I did it</button>
+            <button type="submit" class="button button-primary">Done</button>
         </form>
         <form hx-post="/feedback/{{ action_id }}" hx-target="closest .action-card" hx-swap="outerHTML">
             <input type="hidden" name="outcome" value="skip">
-            <button type="submit" class="feedback-btn skip">Skip</button>
+            <button type="submit" class="button button-secondary">Skip</button>
         </form>
         <form hx-post="/feedback/{{ action_id }}" hx-target="closest .action-card" hx-swap="outerHTML">
             <input type="hidden" name="outcome" value="blocked">
-            <button type="submit" class="feedback-btn blocked">Blocked</button>
+            <button type="submit" class="button button-secondary">Blocked</button>
         </form>
     </div>
 </div>

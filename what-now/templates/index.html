@@ -1,35 +1,48 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" data-theme="light">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>What Now?</title>
     <script src="https://unpkg.com/htmx.org@1.9.12"></script>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <main class="container">
-        <header>
-            <h1>❀ What Now?</h1>
-            <p class="tagline">One action. Right now. Small enough to start.</p>
-        </header>
-
-        <section class="card">
-            <div class="checkin-header">
-                <h2 class="checkin-title">Check in</h2>
-                <p class="checkin-subtitle">We'll match a task to your energy and available time.</p>
+    <main class="page-shell">
+        <div class="page-heading">
+            <div>
+                <h1>❀ What Now?</h1>
+                <p>Pick a task. We'll help you get started.</p>
             </div>
-            <form hx-post="/checkin" hx-target="#action-slot" hx-swap="innerHTML" hx-disabled-elt="find button" hx-indicator="#loading">
-                <div class="slider-header">
-                    <label>Energy (1 = exhausted, 5 = wired)</label>
-                    <span class="range-value" id="energy-val">3</span>
+        </div>
+
+        <section class="card checkin-card">
+            <div class="checkin-heading">
+                <span class="checkin-kicker">A quick check-in</span>
+                <h2>Where are you right now?</h2>
+                <p>We'll match a task to your energy and available time.</p>
+            </div>
+            
+            <form hx-post="/checkin" hx-target="#action-slot" hx-swap="innerHTML" hx-disabled-elt="find button" hx-indicator="#loading" class="checkin-form">
+                <div class="checkin-fields">
+                    <div class="field">
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 0.5rem;">
+                            <label style="margin: 0;">Your energy</label>
+                            <span style="font-weight: 700; color: var(--accent); font-size: 1.1rem;" id="energy-val">3</span>
+                        </div>
+                        <input type="range" name="energy" min="1" max="5" value="3" oninput="document.getElementById('energy-val').textContent = this.value; localStorage.setItem('energy', this.value)" style="width: 100%;">
+                        <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-faint); margin-top: 0.25rem;">
+                            <span>Low</span>
+                            <span>High</span>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label>Time you have <span style="color: var(--text-faint); font-weight: 400; font-size: 0.85em;">(minutes)</span></label>
+                        <input type="number" name="minutes" min="5" max="240" value="45" required oninput="localStorage.setItem('minutes', this.value)" style="height: 42px;">
+                    </div>
                 </div>
-                <input type="range" name="energy" min="1" max="5" value="3" oninput="document.getElementById('energy-val').textContent = this.value; localStorage.setItem('energy', this.value)">
-                
-                <label style="margin-top: 1.5rem;">Minutes available</label>
-                <input type="number" name="minutes" min="5" max="240" value="45" required oninput="localStorage.setItem('minutes', this.value)">
-                
-                <!-- Added id="submit-btn" for OOB swapping -->
-                <button type="submit" id="submit-btn" style="margin-top: 1.5rem;" {% if tasks|length == 0 %}disabled title="Add a task first"{% endif %}>
-                    What should I do?
+                <button type="submit" id="submit-btn" class="button button-primary button-wide checkin-submit" {% if active_count == 0 %}disabled title="Add a task first"{% endif %}>
+                    What should I do next?
                 </button>
                 <div id="loading" class="htmx-indicator">Thinking...</div>
             </form>
@@ -39,39 +52,61 @@
         <section id="action-slot"></section>
 
         <details class="card" open>
-            <summary>
-                <div class="summary-left">
-                    <svg class="arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    Your tasks
-                </div>
-                <div class="summary-right">
-                    <!-- Added id="task-count-badge" for OOB swapping -->
-                    <span id="task-count-badge" class="task-count">{{ tasks|length }} OPEN</span>
-                </div>
+            <summary style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; list-style: none; padding-bottom: 1rem; border-bottom: 1px solid var(--line);">
+                <h2 style="margin: 0; font-family: Georgia, serif; font-size: 1.25rem; font-weight: 650;">Your tasks</h2>
+                <span id="task-count-badge" class="count-pill">{{ active_count }} Open</span>
             </summary>
             <div id="task-list-container" style="margin-top: 1rem;">
                 {% include "_task_list.html" %}
             </div>
         </details>
 
-        <details class="card">
+        <details class="card add-task-card">
             <summary>
-                <div class="summary-left">
-                    <svg class="arrow-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                    Add a task
-                </div>
-                <svg class="plus-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                <span class="add-icon">
+                    <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </span>
+                <span class="add-task-label">Add a task</span>
+                <span class="summary-hint">A small step starts here</span>
             </summary>
-            <form hx-post="/tasks" hx-target="#task-list-container" hx-swap="innerHTML" hx-on::after-request="this.reset()" hx-disabled-elt="find button">
+            <form hx-post="/tasks" hx-target="#task-list-container" hx-swap="innerHTML" hx-on::after-request="this.reset()" class="task-form">
                 <div class="form-grid">
-                    <label class="full-width">Title <input type="text" name="title" required placeholder="e.g. DBMS Assignment"></label>
-                    <label class="full-width">Details (Context) <textarea name="notes" rows="2" placeholder="e.g. Write SQL queries for ER diagrams, chapters 4-5"></textarea></label>
-                    <label>Deadline <input type="datetime-local" name="deadline" required></label>
-                    <label>Daily Commitment (mins) <input type="number" name="estimated_minutes" min="5" max="240" value="45" required></label>
-                    <label>Energy Cost <select name="energy_cost"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option></select></label>
-                    <label>Importance <select name="importance"><option value="1">1 - Lowest</option><option value="2">2</option><option value="3" selected>3 - Medium</option><option value="4">4</option><option value="5">5 - Highest</option></select></label>
+                    <div class="field full-width">
+                        <label>Title</label>
+                        <input type="text" name="title" required placeholder="e.g. DBMS Assignment">
+                    </div>
+                    <div class="field full-width">
+                        <label>Details</label>
+                        <textarea name="notes" placeholder="e.g. Write SQL queries for ER diagrams"></textarea>
+                    </div>
+                    <div class="field">
+                        <label>Deadline</label>
+                        <input type="datetime-local" name="deadline" required>
+                    </div>
+                    <div class="field">
+                        <label>Daily time commitment <span style="color: var(--text-faint); font-weight: 400; font-size: 0.85em;">(min/day)</span></label>
+                        <input type="number" name="estimated_minutes" min="5" max="240" value="45" required>
+                    </div>
+                    <div class="field">
+                        <label>Energy Cost</label>
+                        <select name="energy_cost">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>Importance</label>
+                        <select name="importance">
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3" selected>3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                    </div>
                 </div>
-                <button type="submit" style="margin-top: 1rem;">Add task</button>
+                <button type="submit" class="button button-primary button-wide" style="margin-top: 1rem;">Add task</button>
             </form>
         </details>
     </main>

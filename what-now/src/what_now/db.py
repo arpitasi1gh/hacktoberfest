@@ -42,9 +42,15 @@ def init_db():
         conn.executescript(SCHEMA)
 
 def get_active_tasks():
+    """Used for AI context and the Open count."""
     with get_conn() as conn:
-        # Only return tasks that are not completed and progress is under 100
         return [dict(r) for r in conn.execute("SELECT * FROM tasks WHERE completed_at IS NULL AND (progress IS NULL OR progress < 100)").fetchall()]
+
+def get_all_tasks():
+    """Used for rendering the UI list so completed tasks stay visible."""
+    with get_conn() as conn:
+        # Sorts active tasks first, then completed tasks
+        return [dict(r) for r in conn.execute("SELECT * FROM tasks ORDER BY completed_at IS NOT NULL ASC, id DESC").fetchall()]
 
 def get_task(task_id):
     with get_conn() as conn:
@@ -74,10 +80,6 @@ def update_task(task_id, title, notes, deadline, estimated_minutes, energy_cost,
 def delete_task(task_id):
     with get_conn() as conn:
         conn.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
-
-def complete_task(task_id):
-    with get_conn() as conn:
-        conn.execute("UPDATE tasks SET completed_at = datetime('now'), progress = 100 WHERE id = ?", (task_id,))
 
 def increment_task_progress(task_id, amount=10):
     with get_conn() as conn:

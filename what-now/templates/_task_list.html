@@ -1,29 +1,26 @@
 {% if tasks %}
     <ul class="task-items">
         {% for task in tasks %}
-        <li id="task-{{ task.id }}">
-            <div style="flex: 1; padding-right: 1rem; min-width: 0;">
+        {% set is_completed = (task.progress or 0) >= 100 or task.completed_at %}
+        <li id="task-{{ task.id }}" class="task-item{% if is_completed %} completed-task{% endif %}"{% if is_completed %} aria-label="Completed task"{% endif %}>
+            <div class="task-info">
                 <span class="task-title">{{ task.title }}</span>
                 {% if task.notes %}<span class="task-notes">{{ task.notes }}</span>{% endif %}
-                <span class="task-meta">Due: {{ task.deadline[:10] if task.deadline else "None" }} · {{ task.estimated_minutes }}m daily · {{ task.energy_cost }} energy · importance {{ task.importance }}</span>
+                <span class="task-meta">Due {{ task.deadline[:10] if task.deadline else "None" }} · {{ task.estimated_minutes }} min/day · {{ task.energy_cost }} energy · priority {{ task.importance }}/5</span>
                 
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill" style="width: {{ task.progress or 0 }}%;"></div>
+                <div class="task-progress">
+                    <progress value="{{ task.progress or 0 }}" max="100"></progress>
+                    <span>{{ task.progress or 0 }}%</span>
                 </div>
-                <span class="progress-text">{{ task.progress or 0 }}% complete</span>
             </div>
+            
             <div class="task-actions">
-                <button hx-get="/tasks/{{ task.id }}/edit" hx-target="#task-{{ task.id }}" hx-swap="outerHTML" class="icon-btn" title="Edit">✎</button>
-                <form hx-post="/tasks/{{ task.id }}/complete" hx-target="#task-list-container" hx-swap="innerHTML">
-                    <button type="submit" class="icon-btn" title="Mark Done">✓</button>
-                </form>
-                <form hx-post="/tasks/{{ task.id }}/delete" hx-target="#task-list-container" hx-swap="innerHTML" hx-confirm="Are you sure you want to delete this task?">
-                    <button type="submit" class="icon-btn" title="Delete">×</button>
-                </form>
+                <button hx-get="/tasks/{{ task.id }}/edit" hx-target="#task-{{ task.id }}" hx-swap="outerHTML" class="icon-action">Edit</button>
+                <button hx-post="/tasks/{{ task.id }}/delete" hx-target="#task-list-container" hx-swap="innerHTML" hx-confirm="Are you sure you want to delete this task?" class="icon-action icon-danger">Delete</button>
             </div>
         </li>
         {% endfor %}
     </ul>
 {% else %}
-    <p class="empty">No tasks yet. Add one below.</p>
+    <p class="empty-state">No tasks yet. Add one below.</p>
 {% endif %}
