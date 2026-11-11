@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Form, Request, Response
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
@@ -27,12 +27,17 @@ def home(request: Request):
 @app.post("/tasks", response_class=HTMLResponse)
 def create_task(request: Request, title: str = Form(...), notes: str = Form(""), deadline: str = Form(""), estimated_minutes: int = Form(...), energy_cost: str = Form(...), importance: int = Form(...)):
     db.add_task(title, notes, deadline, estimated_minutes, energy_cost, importance)
-    return RedirectResponse(url="/", status_code=303)
+    # Force a full page reload instead of injecting the HTML into the div
+    response = Response(status_code=200)
+    response.headers["HX-Redirect"] = "/"
+    return response
 
 @app.post("/tasks/{task_id}/delete", response_class=HTMLResponse)
 def delete_task(request: Request, task_id: int):
     db.delete_task(task_id)
-    return RedirectResponse(url="/", status_code=303)
+    response = Response(status_code=200)
+    response.headers["HX-Redirect"] = "/"
+    return response
 
 @app.get("/tasks/{task_id}/edit", response_class=HTMLResponse)
 def edit_task_form(request: Request, task_id: int):
@@ -41,12 +46,16 @@ def edit_task_form(request: Request, task_id: int):
 
 @app.post("/tasks/{task_id}/edit", response_class=HTMLResponse)
 def cancel_edit(request: Request):
-    return RedirectResponse(url="/", status_code=303)
+    response = Response(status_code=200)
+    response.headers["HX-Redirect"] = "/"
+    return response
 
 @app.post("/tasks/{task_id}/update", response_class=HTMLResponse)
 def update_task(request: Request, task_id: int, title: str = Form(...), notes: str = Form(""), deadline: str = Form(""), estimated_minutes: int = Form(...), energy_cost: str = Form(...), importance: int = Form(...), progress: int = Form(...)):
     db.update_task(task_id, title, notes, deadline, estimated_minutes, energy_cost, importance, progress)
-    return RedirectResponse(url="/", status_code=303)
+    response = Response(status_code=200)
+    response.headers["HX-Redirect"] = "/"
+    return response
 
 @app.post("/tasks/{task_id}/progress")
 def update_progress(request: Request, task_id: int, progress: int = Form(...)):
@@ -94,7 +103,6 @@ def feedback(request: Request, action_id: int, outcome: str = Form(...)):
         if action_data and action_data["task_id"]:
             db.increment_task_progress(action_data["task_id"], amount=10)
             
-    # Use HX-Redirect to force a clean page reload
     response = Response(status_code=200)
     response.headers["HX-Redirect"] = "/"
     return response
