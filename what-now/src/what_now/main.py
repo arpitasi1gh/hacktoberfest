@@ -1,37 +1,90 @@
-from contextlib import asynccontextmanager
-from collections.abc import AsyncIterator
-from pathlib import Path
-
-from fastapi import FastAPI
+from fastapi import FastAPI, Form, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.sessions import SessionMiddleware
+from pathlib import Path
+from datetime import datetime
 
-from . import database as db
-from .config import get_session_secret, https_only_cookies
-from .routers import accounts, pages, suggestions, tasks
+from . import db
+from .ai_service import get_next_action
 
+app = FastAPI()
+BASE = Path(__file__).resolve().parent.parent.parent
+app.mount("/static", StaticFiles(directory=str(BASE / "static")), name="static")
+templates = Jinja2Templates(directory=str(BASE / "templates"))
 
-@asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+@app.on_event("startup")
+def startup():
     db.init_db()
-    yield
 
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+    tasks = db.get_active_tasks()
+    stats = db.get_today_stats()
+    return templates.TemplateResponse(request, "index.html", {"tasks": tasks, "stats": stats})
 
-app = FastAPI(title="What Now?", lifespan=lifespan)
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=get_session_secret(),
-    session_cookie="whatnow_session",
-    same_site="lax",
-    https_only=https_only_cookies(),
-    max_age=60 * 60 * 24 * 14,
-)
-app.mount(
-    "/static",
-    StaticFiles(directory=str(Path(__file__).resolve().parent / "static")),
-    name="static",
-)
-app.include_router(pages.router)
-app.include_router(accounts.router)
-app.include_router(tasks.router)
-app.include_router(suggestions.router)
+@app.post("/tasks", response_class=HTMLResponse)
+def create_task(request: Request, title: str = Form(...), notes: str = Form(""), deadline: str = Form(""), estimated_minutes: int = Form(...), energy_cost: str = Form(...), importance: int = Form(...)):
+    db.add_task(title, notes, deadline, estimated_minutes, energy_cost, importance)
+    return templates.TemplateResponse(request, "_task_list.html", {"tasks": db.get_active_tasks()})
+
+@app.post("/tasks/{task_id}/delete", response_class=HTMLResponse)
+def delete_task(request: Request, task_id: int):
+    db.delete_task(task_id)
+    return templates.TemplateResponse(request, "_task_list.html", {"tasks": db.get_active_tasks()})
+
+@app.post("/tasks/{task_id}/complete", response_class=HTMLResponse)
+def complete_task(request: Request, task_id: int):
+    db.complete_task(task_id)
+    return templates.TemplateResponse(request, "_task_list.html", {"tasks": db.get_active_tasks()})
+
+@app.get("/tasks/{task_id}/edit", response_class=HTMLResponse)
+def edit_task_form(request: Request, task_id: int):
+    task = db.get_task(task_id)
+    return templates.TemplateResponse(request, "_edit_task.html", {"task": task})
+
+@app.post("/tasks/{task_id}/edit", response_class=HTMLResponse)
+def cancel_edit(request: Request):
+    return templates.TemplateResponse(request, "_task_list.html", {"tasks": db.get_active_tasks()})
+
+@app.post("/tasks/{task_id}/update", response_class=HTMLResponse)
+def update_task(request: Request, task_id: int, title: str = Form(...), notes: str = Form(""), deadline: str = Form(""), estimated_minutes: int = Form(...), energy_cost: str = Form(...), importance: int = Form(...), progress: int = Form(...)):
+    db.update_task(task_id, title, notes, deadline, estimated_minutes, energy_cost, importance, progress)
+    return templates.TemplateResponse(request, "_task_list.html", {"tasks": db.get_active_tasks()})
+
+@app.post("/checkin", response_class=HTMLResponse)
+async def checkin(request: Request, energy: int = Form(...), minutes: int = Form(...)):
+    tasks = db.get_active_tasks()
+    context = {
+        "time": datetime.now().strftime("%H:%M"),
+        "energy": energy,
+        "available_minutes": minutes,
+        "tasks": [{"title": t["title"], "notes": t["notes"], "deadline": t["deadline"], "estimated_minutes": t["estimated_minutes"], "energy_cost": t["energy_cost"], "importance": t["importance"]} for t in tasks]
+    }
+    
+    try:
+        action = await get_next_action(context)
+    except Exception as e:
+        return f"<div class='error'>AI Error: {e}</div>"
+
+    task_id = None
+    for t in tasks:
+        if t["title"].lower() in action["action"].lower():
+            task_id = t["id"]
+            break
+
+    action_id = db.log_action(task_id, action)
+    return templates.TemplateResponse(request, "_action_card.html", {"action": action, "action_id": action_id})
+
+@app.post("/feedback/{action_id}", response_class=HTMLResponse)
+def feedback(request: Request, action_id: int, outcome: str = Form(...)):
+    db.record_feedback(action_id, outcome)
+    
+    # If Done, increment task progress
+    if outcome == "done":
+        action_data = db.get_action(action_id)
+        if action_data and action_data["task_id"]:
+            db.increment_task_progress(action_data["task_id"], amount=10)
+            
+    stats = db.get_today_stats()
+    return templates.TemplateResponse(request, "_stats.html", {"stats": stats})

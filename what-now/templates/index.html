@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>What Now?</title>
+    <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <main class="container">
+        <header>
+            <h1>❀ What Now?</h1>
+            <p class="tagline">One action. Right now. Small enough to start.</p>
+        </header>
+
+        <section class="card">
+            <div class="checkin-header">
+                <h2 class="checkin-title">CHECK IN</h2>
+                <p class="checkin-subtitle">We'll match a task to your energy and available time.</p>
+            </div>
+            <form hx-post="/checkin" hx-target="#action-slot" hx-swap="innerHTML" hx-disabled-elt="find button" hx-indicator="#loading">
+                <div class="slider-header">
+                    <label>Energy (1 = exhausted, 5 = wired)</label>
+                    <span class="range-value" id="energy-val">3</span>
+                </div>
+                <input type="range" name="energy" min="1" max="5" step="1" value="3" oninput="document.getElementById('energy-val').textContent = this.value; localStorage.setItem('energy', this.value)">
+                
+                <label style="margin-top: 1.5rem;">Minutes available</label>
+                <input type="number" name="minutes" min="5" max="240" value="45" required oninput="localStorage.setItem('minutes', this.value)">
+                
+                <button type="submit" style="margin-top: 1.5rem;" {% if tasks|length == 0 %}disabled title="Add a task first"{% endif %}>
+                    What should I do?
+                </button>
+                <div id="loading" class="htmx-indicator">Thinking...</div>
+            </form>
+            {% include "_stats.html" %}
+        </section>
+
+        <section id="action-slot"></section>
+
+        <details class="card" open>
+            <summary>
+                <div class="summary-left">
+                    <span class="arrow-icon">▶</span> Your tasks
+                </div>
+                <div class="summary-right">
+                    <span class="task-count">{{ tasks|length }} Open</span>
+                </div>
+            </summary>
+            <div id="task-list-container" style="margin-top: 1rem;">
+                {% include "_task_list.html" %}
+            </div>
+        </details>
+
+        <details class="card">
+            <summary>
+                <div class="summary-left">
+                    <span class="arrow-icon">▶</span> Add a task
+                </div>
+                <span class="plus-icon">+</span>
+            </summary>
+                        <form hx-post="/tasks" hx-target="#task-list-container" hx-swap="innerHTML">
+                <div class="form-grid">
+                    <label class="full-width">Title
+                        <input type="text" name="title" required placeholder="e.g. DBMS Assignment">
+                    </label>
+                    <label class="full-width">Details (Context)
+                        <textarea name="notes" rows="2" placeholder="e.g. Write SQL queries for ER diagrams, chapters 4-5"></textarea>
+                    </label>
+                    <label>Deadline
+                        <input type="datetime-local" name="deadline" required>
+                    </label>
+                    <label>Daily Commitment (mins)
+                        <input type="number" name="estimated_minutes" min="5" max="240" value="45" required>
+                    </label>
+                    <label>Energy Cost
+                        <select name="energy_cost">
+                            <option value="low">Low</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="high">High</option>
+                        </select>
+                    </label>
+                    <label>Importance
+                        <select name="importance">
+                            <option value="1">1 - Lowest</option>
+                            <option value="2">2</option>
+                            <option value="3" selected>3 - Medium</option>
+                            <option value="4">4</option>
+                            <option value="5">5 - Highest</option>
+                        </select>
+                    </label>
+                </div>
+                <button type="submit" style="margin-top: 1rem;">Add task</button>
+            </form>
+        </details>
+    </main>
+
+    <script>
+        // Persist sliders on refresh
+        document.addEventListener('DOMContentLoaded', () => {
+            const energy = document.querySelector('input[name="energy"]');
+            const minutes = document.querySelector('input[name="minutes"]');
+            
+            if(localStorage.getItem('energy')) {
+                energy.value = localStorage.getItem('energy');
+                document.getElementById('energy-val').textContent = energy.value;
+            }
+            if(localStorage.getItem('minutes')) {
+                minutes.value = localStorage.getItem('minutes');
+            }
+        });
+    </script>
+</body>
+</html>

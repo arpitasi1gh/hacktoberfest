@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    background-color: #fcf9f4;
+    color: #3a2e2f;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+}
+
+body::before {
+    content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M20 20 Q 30 10 40 20 T 60 20" stroke="%23f0e6df" fill="none" stroke-width="2"/><circle cx="80" cy="80" r="5" fill="%23f0e6df"/></svg>');
+    opacity: 0.5; z-index: -1; pointer-events: none;
+}
+
+.container { max-width: 900px; margin: 0 auto; padding: 3rem 2rem 5rem; }
+
+header { margin-bottom: 2.5rem; text-align: center; }
+
+/* Main Brand Header */
+h1 { 
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem; 
+    color: #5c3a41; 
+    margin-bottom: 0.25rem; 
+    letter-spacing: -0.5px; 
+    font-weight: 600;
+}
+
+.tagline { 
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem; 
+    color: #7a6b6d; 
+    font-weight: 400;
+    margin-top: 0;
+}
+
+/* Check-in Card Header */
+.checkin-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #f0e6df;
+}
+
+.checkin-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    color: #9b4d5a; /* Rose theme color */
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+}
+
+.checkin-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: #7a6b6d;
+    margin: 0;
+}
+
+/* Section Headings (Your tasks, Add a task) */
+h2, .summary-left { 
+    font-family: 'Inter', sans-serif; 
+    font-size: 1.15rem; 
+    font-weight: 600; 
+    color: #1d1d1f; 
+    margin-top: 0;
+}
+
+h2 { margin-bottom: 1rem; }
+.summary-left { margin-bottom: 0; }
+
+.card { background: #fff; border: 1px solid #e8dfd8; border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(92,58,65,0.03); }
+
+/* Simple Slider */
+input[type="range"] { 
+    accent-color: #9b4d5a; 
+    width: 100%; 
+    margin: 0.5rem 0; 
+    height: 6px;
+    border-radius: 3px;
+}
+.slider-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.slider-header label { margin-bottom: 0; }
+
+/* Form Inputs */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.full-width { grid-column: span 2; }
+
+label { display: block; font-size: 0.85rem; font-weight: 500; color: #3a2e2f; margin-bottom: 0.25rem;}
+
+/* Separated input/select from textarea to fix the resize handle bug on date fields */
+input, select {
+    width: 100%; padding: 0.8rem 1rem; border: 1px solid #d8cdc4; border-radius: 10px;
+    font: inherit; font-size: 0.95rem; background: #fcf9f4; color: #1d1d1f;
+    transition: border 0.2s; height: auto; 
+}
+
+textarea {
+    width: 100%; padding: 0.8rem 1rem; border: 1px solid #d8cdc4; border-radius: 10px;
+    font: inherit; font-size: 0.95rem; background: #fcf9f4; color: #1d1d1f;
+    transition: border 0.2s; resize: vertical;
+}
+
+input:focus, select:focus, textarea:focus { outline: none; border-color: #9b4d5a; }
+
+/* Buttons */
+button { 
+    width: 100%; padding: 0.9rem; border: none; border-radius: 10px; 
+    font: inherit; font-weight: 500; cursor: pointer; 
+    background: #9b4d5a; color: #fff; transition: background 0.2s; 
+}
+button:hover:not(:disabled) { background: #83404b; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.htmx-indicator { opacity: 0; transition: opacity 200ms; text-align: center; color: #9b4d5a; margin-top: 1rem; font-weight: 500;}
+.htmx-request .htmx-indicator { opacity: 1; }
+
+/* Dropdowns (Details) */
+details summary { 
+    cursor: pointer; list-style: none; display: flex; 
+    justify-content: space-between; align-items: center; padding: 0.5rem 0; 
+}
+details summary::-webkit-details-marker { display: none; }
+.summary-left { display: flex; align-items: center; gap: 0.75rem; font-size: 1.15rem; font-weight: 500; color: #1d1d1f; }
+.summary-right { display: flex; align-items: center; }
+.arrow-icon { font-size: 0.7rem; color: #9b4d5a; transition: transform 0.2s; transform-origin: center; }
+details[open] .arrow-icon { transform: rotate(90deg); }
+.plus-icon { font-size: 1.2rem; color: #9b4d5a; background: #fcf9f4; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 1px solid #e8dfd8;}
+details[open] summary { margin-bottom: 1.5rem; border-bottom: 1px solid #f0e6df; padding-bottom: 1rem; }
+
+/* Task Count Badge */
+.task-count {
+    background: #f0e6df; color: #5c3a41; font-size: 0.75rem; 
+    font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+}
+
+/* Task List */
+.task-items { list-style: none; padding: 0; margin: 0; }
+.task-items li { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.2rem 0; border-bottom: 1px solid #f0e6df; }
+.task-items li:last-child { border-bottom: none; }
+.task-items li.editing { display: block; background: #fcf9f4; padding: 1.5rem; border-radius: 12px; border: 1px solid #e8dfd8; margin-bottom: 1rem;}
+
+.task-title { display: block; font-size: 1.05rem; font-weight: 600; color: #1d1d1f; margin-bottom: 0.2rem; }
+.task-notes { display: block; font-size: 0.9rem; color: #6e6e73; margin-bottom: 0.4rem; }
+.task-meta { display: block; font-size: 0.8rem; color: #86868b; margin-bottom: 0.5rem;}
+
+/* Progress Bar */
+.progress-bar-container { background: #f0e6df; height: 6px; border-radius: 3px; margin-top: 0.5rem; overflow: hidden; width: 100%; max-width: 300px; }
+.progress-bar-fill { background: #9b4d5a; height: 100%; transition: width 0.3s; }
+.progress-text { font-size: 0.75rem; color: #86868b; display: block; margin-top: 0.3rem; font-weight: 500;}
+
+/* Icon Buttons */
+.task-actions { display: flex; gap: 0.3rem; }
+.icon-btn { width: 32px; height: 32px; border-radius: 8px; background: #fcf9f4; border: 1px solid #e8dfd8; color: #86868b; font-size: 1rem; display: flex; align-items: center; justify-content: center; padding: 0; margin: 0; }
+.icon-btn:hover { background: #f0e6df; color: #9b4d5a; }
+
+/* Action Card */
+.action-card { background: #fff; border: 1px solid #9b4d5a; border-radius: 16px; padding: 2rem; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(155,77,90,0.08); }
+.action-text { font-size: 1.25rem; font-weight: 600; margin: 0 0 0.8rem; color: #1d1d1f; }
+.action-why { color: #6e6e73; font-size: 0.95rem; margin: 0 0 1.5rem; }
+.action-meta { display: flex; justify-content: space-between; background: #fcf9f4; padding: 1rem; border-radius: 10px; font-size: 0.9rem; margin-bottom: 1rem; border: 1px solid #f0e6df;}
+.timebox { font-weight: 600; color: #9b4d5a; }
+.fallback { font-size: 0.85rem; color: #6e6e73; margin: 0; }
+
+/* Feedback Buttons */
+.feedback-row { display: flex; gap: 0.8rem; margin-top: 1.5rem; }
+.feedback-row form { flex: 1; }
+.feedback-btn { width: 100%; padding: 0.7rem; border-radius: 8px; font-weight: 500; font-size: 0.85rem; cursor: pointer; border: none; }
+.feedback-btn.done { background: #9b4d5a; color: white; }
+.feedback-btn.skip { background: #fcf9f4; color: #1d1d1f; border: 1px solid #d8cdc4; }
+.feedback-btn.blocked { background: #fff0f0; color: #b00020; border: 1px solid #ffd6d6; }
+
+/* Stats */
+.today-stats { display: flex; gap: 0.5rem; align-items: center; font-size: 0.85rem; color: #6e6e73; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid #f0e6df;}
+.today-stats strong { color: #1d1d1f; font-weight: 600; }
+.today-stats .dot { color: #d8cdc4; }
+.today-stats .stats-label { margin-left: auto; font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; color: #9b4d5a; }
+.empty { color: #6e6e73; text-align: center; padding: 1.5rem 0; }
+.error { background: #fff0f0; color: #b00020; padding: 1rem; border-radius: 8px; margin-top: 1rem; border: 1px solid #ffd6d6; }

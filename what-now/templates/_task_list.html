@@ -1,0 +1,31 @@
+<div id="task-list">
+    {% if tasks %}
+        <ul class="task-items">
+            {% for task in tasks %}
+            <li id="task-{{ task.id }}">
+                <div style="flex: 1; padding-right: 1rem;">
+                    <span class="task-title">{{ task.title }}</span>
+                    {% if task.notes %}<span class="task-notes">{{ task.notes }}</span>{% endif %}
+                    <span class="task-meta">Due: {{ task.deadline[:10] }} · {{ task.estimated_minutes }}m daily · {{ task.energy_cost }} energy · importance {{ task.importance }}</span>
+                    
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-fill" style="width: {{ task.progress }}%;"></div>
+                    </div>
+                    <span class="progress-text">{{ task.progress }}% complete</span>
+                </div>
+                <div class="task-actions">
+                    <button hx-get="/tasks/{{ task.id }}/edit" hx-target="#task-{{ task.id }}" hx-swap="outerHTML" class="icon-btn" title="Edit">✎</button>
+                    <form hx-post="/tasks/{{ task.id }}/complete" hx-target="#task-list-container" hx-swap="innerHTML">
+                        <button type="submit" class="icon-btn" title="Mark Done">✓</button>
+                    </form>
+                    <form hx-post="/tasks/{{ task.id }}/delete" hx-target="#task-list-container" hx-swap="innerHTML">
+                        <button type="submit" class="icon-btn" title="Delete">×</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty">No tasks yet. Add one below.</p>
+    {% endif %}
+</div>

@@ -1,0 +1,31 @@
+<li id="task-{{ task.id }}" class="editing">
+    <form hx-post="/tasks/{{ task.id }}/update" hx-target="#task-list-container" hx-swap="innerHTML" style="width: 100%;">
+        <div class="form-grid">
+            <label class="full-width">Title <input type="text" name="title" value="{{ task.title }}" required></label>
+            <label class="full-width">Details <textarea name="notes" rows="2">{{ task.notes }}</textarea></label>
+            <label>Deadline <input type="datetime-local" name="deadline" value="{{ task.deadline }}"></label>
+            <label>Daily Mins <input type="number" name="estimated_minutes" value="{{ task.estimated_minutes }}" required></label>
+            <label>Energy Cost 
+                <select name="energy_cost">
+                    <option value="low" {% if task.energy_cost=='low' %}selected{% endif %}>Low</option>
+                    <option value="medium" {% if task.energy_cost=='medium' %}selected{% endif %}>Medium</option>
+                    <option value="high" {% if task.energy_cost=='high' %}selected{% endif %}>High</option>
+                </select>
+            </label>
+            <label>Importance
+                <select name="importance">
+                    <option value="1" {% if task.importance == 1 %}selected{% endif %}>1</option>
+                    <option value="2" {% if task.importance == 2 %}selected{% endif %}>2</option>
+                    <option value="3" {% if task.importance == 3 %}selected{% endif %}>3</option>
+                    <option value="4" {% if task.importance == 4 %}selected{% endif %}>4</option>
+                    <option value="5" {% if task.importance == 5 %}selected{% endif %}>5</option>
+                </select>
+            </label>
+            <label>Progress % <input type="number" name="progress" min="0" max="100" value="{{ task.progress }}"></label>
+        </div>
+        <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+            <button type="submit" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">Save</button>
+            <button hx-post="/tasks/{{ task.id }}/edit" hx-target="#task-list-container" hx-swap="innerHTML" type="button" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; background: #fcf9f4; color: #5c3a41; border: 1px solid #d8cdc4;">Cancel</button>
+        </div>
+    </form>
+</li>
