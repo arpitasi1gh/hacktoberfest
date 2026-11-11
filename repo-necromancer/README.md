@@ -3,7 +3,8 @@
 > A local-first AI tool that performs a deep forensic archaeology on any GitHub repository. It maps the architecture, extracts critical issues, and generates a dramatic eulogy from the ghost of the abandoned code.
 
 🔗 **Live Demo:** [https://repo-necromancer.onrender.com](https://repo-necromancer.onrender.com)  
-📊 **Repository:** [https://github.com/arpitasi1gh/hacktoberfest/tree/main/repo-necromancer](https://github.com/arpitasi1gh/hacktoberfest/tree/main/repo-necromancer)
+📊 **Repository:** [https://github.com/arpitasi1gh/hacktoberfest/tree/main/repo-necromancer](https://github.com/arpitasi1gh/hacktoberfest/tree/main/repo-necromancer)  
+✍️ **DEV Write-up:** [https://dev.to/arpitasi1gh/repo-necromancer-i-built-an-ai-that-writes-eulogies-for-dead-github-repos-7cm](https://dev.to/arpitasi1gh/repo-necromancer-i-built-an-ai-that-writes-eulogies-for-dead-github-repos-7cm)
 
 ![Status](https://img.shields.io/badge/Status-Hacktoberfest_Submission-brightgreen?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
@@ -44,6 +45,29 @@
         <li><a href="#-license">📝 License</a></li>
         <li><a href="#-show-your-support">⭐ Show Your Support</a></li>
       </ul>
+    </td>
+  </tr>
+</table>
+
+---
+
+<table>
+  <tr>
+    <td>
+      <p align="center"><b>Demo Image 01</b></p>
+      <img width="1470" height="879" alt="DEMO IMAGE 01" src="https://github.com/user-attachments/assets/60cdda4f-c52c-4d08-8a0a-d94a0b875491" />
+    </td>
+    <td>
+      <p align="center"><b>Demo Image 02</b></p>
+      <img width="1470" height="884" alt="DEMO IMAGE 02" src="https://github.com/user-attachments/assets/dbe3f92c-ff24-45f8-823e-1e63ad5ea3dc" />
+    </td>
+    <td>
+      <p align="center"><b>Demo Image 03</b></p>
+      <img width="1470" height="882" alt="DEMO IMAGE 03" src="https://github.com/user-attachments/assets/0e5c893f-ac24-4765-9ef7-7c5ab62d05a5" />
+    </td>
+    <td>
+      <p align="center"><b>Demo Image 04</b></p>
+      <img width="1466" height="871" alt="DEMO IMAGE 04" src="https://github.com/user-attachments/assets/8775ee15-d6c3-43db-b2f3-b642681b0695" />
     </td>
   </tr>
 </table>
