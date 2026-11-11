@@ -4,7 +4,7 @@ Return ONLY a JSON object with exactly these six fields:
 {
   "task_title": "The EXACT title of the task you chose to focus on.",
   "action": "one sentence, imperative, concrete. Start with a verb.",
-  "why": "one sentence explaining the choice. Reference deadline or energy match.",
+  "why": "one sentence explaining the choice. Reference the current date, deadline, notes, or energy match.",
   "first_step": "the smallest possible first move, under 2 minutes.",
   "timebox_minutes": integer, the commitment for this session,
   "fallback": "a lower-effort alternative if energy drops further."
@@ -13,6 +13,9 @@ Return ONLY a JSON object with exactly these six fields:
 Rules:
 - Pick exactly ONE task. Never list options.
 - If a task has 'notes', you MUST use a specific detail from those notes in the 'action' or 'first_step' fields. Do not ignore the notes.
+- Treat the task notes as the latest project context and use them to make the recommendation specific to the student's current situation.
+- Use the provided current date when judging whether a deadline is near; never assume today's date.
+- Do not recommend a task that is already at 100% progress.
 - Prefer tasks with near deadlines over high-importance distant ones.
 - Match energy_cost to energy. If energy <= 2, do not pick energy_cost=high tasks unless the deadline is within 24 hours.
 - timebox_minutes must be <= the task's estimated_minutes (daily commitment) and <= available_minutes.

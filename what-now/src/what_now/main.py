@@ -64,9 +64,21 @@ async def checkin(request: Request, energy: int = Form(...), minutes: int = Form
     active_tasks = db.get_active_tasks()
     context = {
         "time": datetime.now().strftime("%H:%M"),
+        "date": datetime.now().date().isoformat(),
         "energy": energy,
         "available_minutes": minutes,
-        "tasks": [{"title": t["title"], "notes": t["notes"], "deadline": t["deadline"], "estimated_minutes": t["estimated_minutes"], "energy_cost": t["energy_cost"], "importance": t["importance"]} for t in active_tasks]
+        "tasks": [
+            {
+                "title": t["title"],
+                "notes": (t["notes"] or "").strip(),
+                "deadline": t["deadline"],
+                "progress": t["progress"] or 0,
+                "estimated_minutes": t["estimated_minutes"],
+                "energy_cost": t["energy_cost"],
+                "importance": t["importance"],
+            }
+            for t in active_tasks
+        ],
     }
     
     try:
@@ -86,7 +98,17 @@ async def checkin(request: Request, energy: int = Form(...), minutes: int = Form
             break
 
     action_id = db.log_action(task_id, action)
-    return templates.TemplateResponse(request, "_action_card.html", {"action": action, "action_id": action_id, "task_progress": task_progress})
+    return templates.TemplateResponse(request, "_action_card.html", {"action": action, "action_id": action_id, "task_id": task_id, "task_progress": task_progress})
+
+@app.post("/tasks/{task_id}/progress", response_class=HTMLResponse)
+def set_progress(request: Request, task_id: int, progress: int = Form(...)):
+    db.set_task_progress(task_id, progress)
+    task = db.get_task(task_id)
+    return templates.TemplateResponse(
+        request,
+        "_task_progress.html",
+        {"task_id": task_id, "task_progress": task["progress"] or 0},
+    )
 
 @app.post("/feedback/{action_id}", response_class=HTMLResponse)
 def feedback(request: Request, action_id: int, outcome: str = Form(...)):
@@ -99,7 +121,11 @@ def feedback(request: Request, action_id: int, outcome: str = Form(...)):
             
     stats = db.get_today_stats()
     stats_html = templates.get_template("_stats.html").render(stats=stats, request=request)
-    stats_oob = stats_html.replace('<div id="today-stats"', '<div id="today-stats" hx-swap-oob="true"')
+    stats_oob = stats_html.replace(
+        '<div id="today-stats"',
+        '<div id="today-stats" hx-swap-oob="outerHTML"',
+        1,
+    )
     
     all_tasks = db.get_all_tasks()
     active_tasks = db.get_active_tasks()

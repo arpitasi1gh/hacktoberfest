@@ -91,6 +91,20 @@ def increment_task_progress(task_id, amount=10):
             else:
                 conn.execute("UPDATE tasks SET progress = ? WHERE id = ?", (new_prog, task_id))
 
+def set_task_progress(task_id, progress):
+    progress = max(0, min(100, progress))
+    with get_conn() as conn:
+        if progress == 100:
+            conn.execute(
+                "UPDATE tasks SET progress = 100, completed_at = COALESCE(completed_at, datetime('now')) WHERE id = ?",
+                (task_id,),
+            )
+        else:
+            conn.execute(
+                "UPDATE tasks SET progress = ?, completed_at = NULL WHERE id = ?",
+                (progress, task_id),
+            )
+
 def log_action(task_id, action_data):
     with get_conn() as conn:
         cur = conn.execute(

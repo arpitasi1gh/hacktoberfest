@@ -24,16 +24,13 @@
         </div>
     </div>
 
-    <div class="suggestion-progress">
-        <div class="suggestion-progress-heading">
-            <label>Task progress</label>
-            <output>{{ task_progress }}%</output>
+    {% if task_id %}
+        {% include "_task_progress.html" %}
+    {% else %}
+        <div class="suggestion-progress">
+            <span class="field-hint">No active task was matched to this suggestion.</span>
         </div>
-        <div class="suggestion-progress-track">
-            <div class="suggestion-progress-bar" style="width: {{ task_progress }}%;"></div>
-        </div>
-        <span class="field-hint">Move progress forward to mark this session done. The task is complete at 100%.</span>
-    </div>
+    {% endif %}
 
     <div class="feedback-actions">
         <form hx-post="/feedback/{{ action_id }}" hx-target="closest .action-card" hx-swap="outerHTML">
