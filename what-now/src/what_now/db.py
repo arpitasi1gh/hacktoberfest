@@ -43,7 +43,8 @@ def init_db():
 
 def get_active_tasks():
     with get_conn() as conn:
-        return [dict(r) for r in conn.execute("SELECT * FROM tasks WHERE completed_at IS NULL").fetchall()]
+        # Only return tasks that are not completed and progress is under 100
+        return [dict(r) for r in conn.execute("SELECT * FROM tasks WHERE completed_at IS NULL AND (progress IS NULL OR progress < 100)").fetchall()]
 
 def get_task(task_id):
     with get_conn() as conn:
@@ -58,10 +59,17 @@ def add_task(title, notes, deadline, estimated_minutes, energy_cost, importance)
 
 def update_task(task_id, title, notes, deadline, estimated_minutes, energy_cost, importance, progress):
     with get_conn() as conn:
-        conn.execute(
-            "UPDATE tasks SET title=?, notes=?, deadline=?, estimated_minutes=?, energy_cost=?, importance=?, progress=? WHERE id=?",
-            (title, notes, deadline, estimated_minutes, energy_cost, importance, progress, task_id)
-        )
+        # If progress hits 100, auto-complete the task
+        if progress >= 100:
+            conn.execute(
+                "UPDATE tasks SET title=?, notes=?, deadline=?, estimated_minutes=?, energy_cost=?, importance=?, progress=?, completed_at=datetime('now') WHERE id=?",
+                (title, notes, deadline, estimated_minutes, energy_cost, importance, progress, task_id)
+            )
+        else:
+            conn.execute(
+                "UPDATE tasks SET title=?, notes=?, deadline=?, estimated_minutes=?, energy_cost=?, importance=?, progress=?, completed_at=NULL WHERE id=?",
+                (title, notes, deadline, estimated_minutes, energy_cost, importance, progress, task_id)
+            )
 
 def delete_task(task_id):
     with get_conn() as conn:
@@ -75,8 +83,11 @@ def increment_task_progress(task_id, amount=10):
     with get_conn() as conn:
         task = conn.execute("SELECT progress FROM tasks WHERE id = ?", (task_id,)).fetchone()
         if task:
-            new_prog = min(100, task["progress"] + amount)
-            conn.execute("UPDATE tasks SET progress = ? WHERE id = ?", (new_prog, task_id))
+            new_prog = min(100, (task["progress"] or 0) + amount)
+            if new_prog >= 100:
+                conn.execute("UPDATE tasks SET progress = 100, completed_at = datetime('now') WHERE id = ?", (task_id,))
+            else:
+                conn.execute("UPDATE tasks SET progress = ? WHERE id = ?", (new_prog, task_id))
 
 def log_action(task_id, action_data):
     with get_conn() as conn:

@@ -2,9 +2,9 @@
     <form hx-post="/tasks/{{ task.id }}/update" hx-target="#task-list-container" hx-swap="innerHTML" style="width: 100%;">
         <div class="form-grid">
             <label class="full-width">Title <input type="text" name="title" value="{{ task.title }}" required></label>
-            <label class="full-width">Details <textarea name="notes" rows="2">{{ task.notes }}</textarea></label>
-            <label>Deadline <input type="datetime-local" name="deadline" value="{{ task.deadline }}"></label>
-            <label>Daily Mins <input type="number" name="estimated_minutes" value="{{ task.estimated_minutes }}" required></label>
+            <label class="full-width">Details <textarea name="notes" rows="2">{{ task.notes or '' }}</textarea></label>
+            <label>Deadline <input type="datetime-local" name="deadline" value="{{ task.deadline or '' }}"></label>
+            <label>Daily Mins <input type="number" name="estimated_minutes" value="{{ task.estimated_minutes or 45 }}" required></label>
             <label>Energy Cost 
                 <select name="energy_cost">
                     <option value="low" {% if task.energy_cost=='low' %}selected{% endif %}>Low</option>
@@ -21,7 +21,14 @@
                     <option value="5" {% if task.importance == 5 %}selected{% endif %}>5</option>
                 </select>
             </label>
-            <label>Progress % <input type="number" name="progress" min="0" max="100" value="{{ task.progress }}"></label>
+            
+            <!-- UPDATED PROGRESS SLIDER -->
+            <div class="full-width slider-container">
+                <label>Progress: <span id="progress-val-{{ task.id }}">{{ task.progress or 0 }}%</span></label>
+                <input type="range" name="progress" min="0" max="100" value="{{ task.progress or 0 }}" 
+                       oninput="document.getElementById('progress-val-{{ task.id }}').textContent = this.value + '%'">
+            </div>
+            
         </div>
         <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
             <button type="submit" style="flex: 1; padding: 0.5rem; font-size: 0.85rem;">Save</button>

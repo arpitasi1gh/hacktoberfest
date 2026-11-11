@@ -13,6 +13,22 @@ BASE = Path(__file__).resolve().parent.parent.parent
 app.mount("/static", StaticFiles(directory=str(BASE / "static")), name="static")
 templates = Jinja2Templates(directory=str(BASE / "templates"))
 
+def render_dashboard_update(request: Request) -> HTMLResponse:
+    """Renders the task list and uses HTMX OOB swaps for the count and button."""
+    tasks = db.get_active_tasks()
+    
+    # 1. Main list
+    list_html = templates.get_template("_task_list.html").render(tasks=tasks, request=request)
+    
+    # 2. OOB Counter
+    count_html = f'<span id="task-count-badge" class="task-count" hx-swap-oob="true">{len(tasks)} OPEN</span>'
+    
+    # 3. OOB Submit Button
+    disabled = 'disabled title="Add a task first"' if len(tasks) == 0 else ''
+    btn_html = f'<button type="submit" id="submit-btn" style="margin-top: 1.5rem;" hx-swap-oob="true" {disabled}>What should I do?</button>'
+    
+    return HTMLResponse(list_html + count_html + btn_html)
+
 @app.on_event("startup")
 def startup():
     db.init_db()
@@ -26,17 +42,17 @@ def home(request: Request):
 @app.post("/tasks", response_class=HTMLResponse)
 def create_task(request: Request, title: str = Form(...), notes: str = Form(""), deadline: str = Form(""), estimated_minutes: int = Form(...), energy_cost: str = Form(...), importance: int = Form(...)):
     db.add_task(title, notes, deadline, estimated_minutes, energy_cost, importance)
-    return templates.TemplateResponse(request, "_task_list.html", {"tasks": db.get_active_tasks()})
+    return render_dashboard_update(request)
 
 @app.post("/tasks/{task_id}/delete", response_class=HTMLResponse)
 def delete_task(request: Request, task_id: int):
     db.delete_task(task_id)
-    return templates.TemplateResponse(request, "_task_list.html", {"tasks": db.get_active_tasks()})
+    return render_dashboard_update(request)
 
 @app.post("/tasks/{task_id}/complete", response_class=HTMLResponse)
 def complete_task(request: Request, task_id: int):
     db.complete_task(task_id)
-    return templates.TemplateResponse(request, "_task_list.html", {"tasks": db.get_active_tasks()})
+    return render_dashboard_update(request)
 
 @app.get("/tasks/{task_id}/edit", response_class=HTMLResponse)
 def edit_task_form(request: Request, task_id: int):
@@ -45,12 +61,12 @@ def edit_task_form(request: Request, task_id: int):
 
 @app.post("/tasks/{task_id}/edit", response_class=HTMLResponse)
 def cancel_edit(request: Request):
-    return templates.TemplateResponse(request, "_task_list.html", {"tasks": db.get_active_tasks()})
+    return render_dashboard_update(request)
 
 @app.post("/tasks/{task_id}/update", response_class=HTMLResponse)
 def update_task(request: Request, task_id: int, title: str = Form(...), notes: str = Form(""), deadline: str = Form(""), estimated_minutes: int = Form(...), energy_cost: str = Form(...), importance: int = Form(...), progress: int = Form(...)):
     db.update_task(task_id, title, notes, deadline, estimated_minutes, energy_cost, importance, progress)
-    return templates.TemplateResponse(request, "_task_list.html", {"tasks": db.get_active_tasks()})
+    return render_dashboard_update(request)
 
 @app.post("/checkin", response_class=HTMLResponse)
 async def checkin(request: Request, energy: int = Form(...), minutes: int = Form(...)):
@@ -86,5 +102,17 @@ def feedback(request: Request, action_id: int, outcome: str = Form(...)):
         if action_data and action_data["task_id"]:
             db.increment_task_progress(action_data["task_id"], amount=10)
             
+    # Must update dashboard (list, counter, button) because progress changed
     stats = db.get_today_stats()
-    return templates.TemplateResponse(request, "_stats.html", {"stats": stats})
+    stats_html = templates.get_template("_stats.html").render(stats=stats, request=request)
+    
+    tasks = db.get_active_tasks()
+    list_html = templates.get_template("_task_list.html").render(tasks=tasks, request=request)
+    count_html = f'<span id="task-count-badge" class="task-count" hx-swap-oob="true">{len(tasks)} OPEN</span>'
+    disabled = 'disabled title="Add a task first"' if len(tasks) == 0 else ''
+    btn_html = f'<button type="submit" id="submit-btn" style="margin-top: 1.5rem;" hx-swap-oob="true" {disabled}>What should I do?</button>'
+    
+    # We also need to OOB swap the task list back in.
+    list_oob = list_html.replace('<ul class="task-items">', '<ul id="task-list-inner" class="task-items" hx-swap-oob="innerHTML:#task-list-container">')
+    
+    return HTMLResponse(stats_html + count_html + btn_html + list_oob)
