@@ -43,7 +43,8 @@
             </div>
         </div>
 
-        <div class="task-progress-edit-field">
+        <!-- Added class="field" here -->
+        <div class="field task-progress-edit-field">
             <label>Progress <output id="progress-out-{{ task.id }}">{{ task.progress or 0 }}%</output></label>
             <div class="task-progress-edit">
                 <input type="range" name="progress" min="0" max="100" value="{{ task.progress or 0 }}" 
@@ -55,7 +56,8 @@
 
         <div class="task-edit-actions">
             <button type="submit" class="button button-save-task">Save changes</button>
-            <button hx-post="/tasks/{{ task.id }}/edit" hx-target="#task-list-container" hx-swap="innerHTML" type="button" class="button button-quiet">Cancel</button>
+            <!-- Changed to button-secondary -->
+            <button hx-post="/tasks/{{ task.id }}/edit" hx-target="#task-list-container" hx-swap="innerHTML" type="button" class="button button-secondary">Cancel</button>
         </div>
     </form>
 </li>

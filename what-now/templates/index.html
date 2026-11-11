@@ -30,7 +30,7 @@
                             <label style="margin: 0;">Your energy</label>
                             <span style="font-weight: 700; color: var(--accent); font-size: 1.1rem;" id="energy-val">3</span>
                         </div>
-                        <input type="range" name="energy" min="1" max="5" value="3" oninput="document.getElementById('energy-val').textContent = this.value; localStorage.setItem('energy', this.value)" style="width: 100%;">
+                            <input type="range" name="energy" min="1" max="5" value="3" style="--progress: 50%;" oninput="this.style.setProperty('--progress', ((this.value - 1) / 4 * 100) + '%'); document.getElementById('energy-val').textContent = this.value; localStorage.setItem('energy', this.value)">
                         <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-faint); margin-top: 0.25rem;">
                             <span>Low</span>
                             <span>High</span>
@@ -115,9 +115,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             const energy = document.querySelector('input[name="energy"]');
             const minutes = document.querySelector('input[name="minutes"]');
+            
             if(localStorage.getItem('energy')) {
-                energy.value = localStorage.getItem('energy');
-                document.getElementById('energy-val').textContent = energy.value;
+                const val = localStorage.getItem('energy');
+                energy.value = val;
+                energy.style.setProperty('--progress', ((val - 1) / 4 * 100) + '%');
+                document.getElementById('energy-val').textContent = val;
             }
             if(localStorage.getItem('minutes')) {
                 minutes.value = localStorage.getItem('minutes');

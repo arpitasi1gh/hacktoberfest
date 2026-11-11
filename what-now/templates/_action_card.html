@@ -24,24 +24,18 @@
         </div>
     </div>
 
-    {% if task_id %}
-        {% include "_task_progress.html" %}
-    {% else %}
-        <div class="suggestion-progress">
-            <span class="field-hint">No active task was matched to this suggestion.</span>
-        </div>
-    {% endif %}
+    {% include "_task_progress.html" %}
 
     <div class="feedback-actions">
-        <form hx-post="/feedback/{{ action_id }}" hx-target="closest .action-card" hx-swap="outerHTML">
+        <form hx-post="/feedback/{{ action_id }}">
             <input type="hidden" name="outcome" value="done">
             <button type="submit" class="button button-primary">Done</button>
         </form>
-        <form hx-post="/feedback/{{ action_id }}" hx-target="closest .action-card" hx-swap="outerHTML">
+        <form hx-post="/feedback/{{ action_id }}">
             <input type="hidden" name="outcome" value="skip">
             <button type="submit" class="button button-secondary">Skip</button>
         </form>
-        <form hx-post="/feedback/{{ action_id }}" hx-target="closest .action-card" hx-swap="outerHTML">
+        <form hx-post="/feedback/{{ action_id }}">
             <input type="hidden" name="outcome" value="blocked">
             <button type="submit" class="button button-secondary">Blocked</button>
         </form>

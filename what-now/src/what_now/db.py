@@ -1,6 +1,5 @@
 import sqlite3
 from pathlib import Path
-from datetime import date
 
 DB_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "whatnow.db"
 
@@ -26,7 +25,7 @@ CREATE TABLE IF NOT EXISTS actions (
     timebox_minutes INTEGER NOT NULL,
     fallback TEXT NOT NULL,
     outcome TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
+    created_at TEXT DEFAULT (datetime('now', 'localtime'))
 );
 """
 
@@ -42,14 +41,11 @@ def init_db():
         conn.executescript(SCHEMA)
 
 def get_active_tasks():
-    """Used for AI context and the Open count."""
     with get_conn() as conn:
         return [dict(r) for r in conn.execute("SELECT * FROM tasks WHERE completed_at IS NULL AND (progress IS NULL OR progress < 100)").fetchall()]
 
 def get_all_tasks():
-    """Used for rendering the UI list so completed tasks stay visible."""
     with get_conn() as conn:
-        # Sorts active tasks first, then completed tasks
         return [dict(r) for r in conn.execute("SELECT * FROM tasks ORDER BY completed_at IS NOT NULL ASC, id DESC").fetchall()]
 
 def get_task(task_id):
@@ -65,10 +61,9 @@ def add_task(title, notes, deadline, estimated_minutes, energy_cost, importance)
 
 def update_task(task_id, title, notes, deadline, estimated_minutes, energy_cost, importance, progress):
     with get_conn() as conn:
-        # If progress hits 100, auto-complete the task
         if progress >= 100:
             conn.execute(
-                "UPDATE tasks SET title=?, notes=?, deadline=?, estimated_minutes=?, energy_cost=?, importance=?, progress=?, completed_at=datetime('now') WHERE id=?",
+                "UPDATE tasks SET title=?, notes=?, deadline=?, estimated_minutes=?, energy_cost=?, importance=?, progress=?, completed_at=datetime('now', 'localtime') WHERE id=?",
                 (title, notes, deadline, estimated_minutes, energy_cost, importance, progress, task_id)
             )
         else:
@@ -76,6 +71,13 @@ def update_task(task_id, title, notes, deadline, estimated_minutes, energy_cost,
                 "UPDATE tasks SET title=?, notes=?, deadline=?, estimated_minutes=?, energy_cost=?, importance=?, progress=?, completed_at=NULL WHERE id=?",
                 (title, notes, deadline, estimated_minutes, energy_cost, importance, progress, task_id)
             )
+
+def update_task_progress(task_id, progress):
+    with get_conn() as conn:
+        if progress >= 100:
+            conn.execute("UPDATE tasks SET progress = 100, completed_at = datetime('now', 'localtime') WHERE id = ?", (task_id,))
+        else:
+            conn.execute("UPDATE tasks SET progress = ?, completed_at = NULL WHERE id = ?", (progress, task_id))
 
 def delete_task(task_id):
     with get_conn() as conn:
@@ -87,32 +89,9 @@ def increment_task_progress(task_id, amount=10):
         if task:
             new_prog = min(100, (task["progress"] or 0) + amount)
             if new_prog >= 100:
-                conn.execute("UPDATE tasks SET progress = 100, completed_at = datetime('now') WHERE id = ?", (task_id,))
+                conn.execute("UPDATE tasks SET progress = 100, completed_at = datetime('now', 'localtime') WHERE id = ?", (task_id,))
             else:
                 conn.execute("UPDATE tasks SET progress = ? WHERE id = ?", (new_prog, task_id))
-
-def set_task_progress(task_id, progress):
-    progress = max(0, min(100, progress))
-    with get_conn() as conn:
-        if progress == 100:
-            conn.execute(
-                "UPDATE tasks SET progress = 100, completed_at = COALESCE(completed_at, datetime('now')) WHERE id = ?",
-                (task_id,),
-            )
-        else:
-            conn.execute(
-                "UPDATE tasks SET progress = ?, completed_at = NULL WHERE id = ?",
-                (progress, task_id),
-            )
-
-def log_action(task_id, action_data):
-    with get_conn() as conn:
-        cur = conn.execute(
-            """INSERT INTO actions (task_id, action, why, first_step, timebox_minutes, fallback) 
-               VALUES (?, ?, ?, ?, ?, ?)""",
-            (task_id, action_data["action"], action_data["why"], action_data["first_step"], action_data["timebox_minutes"], action_data["fallback"])
-        )
-        return cur.lastrowid
 
 def get_action(action_id):
     with get_conn() as conn:
@@ -122,14 +101,23 @@ def record_feedback(action_id, outcome):
     with get_conn() as conn:
         conn.execute("UPDATE actions SET outcome = ? WHERE id = ?", (outcome, action_id))
 
+def log_action(task_id, action_data):
+    with get_conn() as conn:
+        cur = conn.execute(
+            """INSERT INTO actions (task_id, action, why, first_step, timebox_minutes, fallback, created_at) 
+               VALUES (?, ?, ?, ?, ?, ?, datetime('now', 'localtime'))""",
+            (task_id, action_data["action"], action_data["why"], action_data["first_step"], action_data["timebox_minutes"], action_data["fallback"])
+        )
+        return cur.lastrowid
+
 def get_today_stats():
     with get_conn() as conn:
-        today = date.today().isoformat()
+        # Force the comparison to use localtime
         row = conn.execute("""
             SELECT 
                 SUM(CASE WHEN outcome = 'done' THEN 1 ELSE 0 END) as done,
                 SUM(CASE WHEN outcome = 'skip' THEN 1 ELSE 0 END) as skip,
                 SUM(CASE WHEN outcome = 'blocked' THEN 1 ELSE 0 END) as blocked
-            FROM actions WHERE date(created_at) = ?
-        """, (today,)).fetchone()
+            FROM actions WHERE date(created_at) = date('now', 'localtime')
+        """).fetchone()
         return {"done": row["done"] or 0, "skip": row["skip"] or 0, "blocked": row["blocked"] or 0}

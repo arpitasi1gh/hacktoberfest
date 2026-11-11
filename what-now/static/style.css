@@ -261,3 +261,121 @@ li.task-item.completed-task progress::-webkit-progress-value { background: var(-
     align-items: start;
     margin-bottom: 1.5rem;
 }
+
+/* Clean, functional slider for the Action Card */
+.suggestion-progress input[type="range"] {
+    --progress: 0%;
+    display: block;
+    width: 100%;
+    height: 1.25rem;
+    padding: 0;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+.suggestion-progress input[type="range"]::-webkit-slider-runnable-track {
+    height: 0.5rem;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--accent) 0 var(--progress), var(--line) var(--progress) 100%);
+}
+.suggestion-progress input[type="range"]::-webkit-slider-thumb {
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: -0.3rem;
+    appearance: none;
+    -webkit-appearance: none;
+    border: 2px solid var(--surface);
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Fix Edit Form Actions */
+.task-edit-actions { 
+    display: flex; 
+    align-items: center; 
+    gap: 0.65rem; 
+    width: 100%;
+    margin-top: 1.5rem;
+}
+
+.task-edit-actions button {
+    flex: 1;         /* Makes them 50/50 */
+    width: 50%;
+    min-height: 46px;
+}
+
+.task-edit-actions .button-save-task { 
+    background: linear-gradient(135deg, var(--accent), var(--accent-strong)); 
+    color: #fff; 
+    border: none; 
+}
+
+/* Ensure the progress label matches the other field labels */
+.task-progress-edit-field > label {
+    display: flex;
+    justify-content: space-between;
+    color: var(--text);
+    font-size: 0.88rem;
+    font-weight: 650;
+}
+
+/* --- UNIVERSAL SLIDER STYLING --- */
+input[type="range"] {
+  --progress: 0%;
+  display: block;
+  width: 100%;
+  height: 1.25rem;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Chrome / Safari / Edge */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--accent) 0 var(--progress), var(--line) var(--progress) 100%);
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: -0.3rem;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* Firefox */
+input[type="range"]::-moz-range-track {
+  height: 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--line);
+}
+
+input[type="range"]::-moz-range-progress {
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 1.1rem;
+  height: 1.1rem;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}

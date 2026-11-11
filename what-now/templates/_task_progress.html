@@ -1,25 +1,12 @@
-<div class="suggestion-progress" id="task-progress-{{ task_id }}">
+<div class="suggestion-progress">
     <div class="suggestion-progress-heading">
-        <label for="task-progress-slider-{{ task_id }}">Task progress</label>
-        <output id="task-progress-value-{{ task_id }}">{{ task_progress }}%</output>
+        <label>Task progress</label>
+        <output id="progress-out-{{ task_id }}">{{ task_progress }}%</output>
     </div>
-    <input
-        id="task-progress-slider-{{ task_id }}"
-        class="suggestion-progress-slider"
-        type="range"
-        name="progress"
-        min="0"
-        max="100"
-        value="{{ task_progress }}"
-        aria-label="Task progress"
-        hx-post="/tasks/{{ task_id }}/progress"
-        hx-trigger="change"
-        hx-target="#task-progress-{{ task_id }}"
-        hx-swap="outerHTML"
-        oninput="document.getElementById('task-progress-value-{{ task_id }}').textContent = this.value + '%'; document.getElementById('task-progress-bar-{{ task_id }}').style.width = this.value + '%';"
-    >
-    <div class="suggestion-progress-track" aria-hidden="true">
-        <div id="task-progress-bar-{{ task_id }}" class="suggestion-progress-bar" style="width: {{ task_progress }}%;"></div>
-    </div>
-    <span class="field-hint">Adjust progress; 100% marks the task complete.</span>
+    <form hx-post="/tasks/{{ task_id }}/progress" hx-trigger="change" hx-swap="none" style="margin: 0.85rem 0 0.2rem;">
+        <input type="range" name="progress" min="0" max="100" value="{{ task_progress }}" 
+               style="--progress: {{ task_progress }}%;"
+               oninput="this.style.setProperty('--progress', this.value + '%'); document.getElementById('progress-out-{{ task_id }}').textContent = this.value + '%';">
+    </form>
+    <span class="field-hint">Move progress forward to mark this session done. The task is complete at 100%.</span>
 </div>
