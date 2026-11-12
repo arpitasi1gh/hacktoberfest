@@ -2,7 +2,7 @@
 
 > A local-first AI assistant that turns your energy, available time, and task list into **one concrete next action**. No hosted AI, API keys, or cloud model calls required to run it.
 
-🔗 **Live Demo:** [https://what-now-g8eg.onrender.com](https://what-now-g8eg.onrender.com)
+🔗 **Live Demo:** [https://what-now-g8eg.onrender.com](https://what-now-g8eg.onrender.com)  
 📊 **Repository:** [https://github.com/arpitasi1gh/hacktoberfest/tree/main/what-now](https://github.com/arpitasi1gh/hacktoberfest/tree/main/what-now)   
 ✍️ **DEV Write-up:** [Hacktoberfest 2026 Weekend Challenge Submission](https://dev.to/arpitasi1gh/what-now-a-local-first-ai-next-action-coach-for-a-tired-college-student-2ec6)
 
