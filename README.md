@@ -39,7 +39,19 @@ Across all five projects, I consistently used the same core philosophy: **local-
 - **Storage:** SQLite (Local, zero config)
 - **AI Engine:** Ollama (Gemma 3 4B) running locally. If Ollama is offline, the app seamlessly falls back to Google AI Studio (Gemini).
 
-## 🤝 Connect With Me
+---
+
+## 🤝 Open to Code Reviews & Contributions
+
+These projects were built rapidly under hackathon deadlines. While they are fully functional and deployed, I am absolutely open to **code reviews, pull requests, and feedback from anyone.**
+
+Whether you are a fellow student, a hiring manager, or a seasoned engineer, I welcome different perspectives. If you spot areas for improvement (especially regarding FastAPI patterns, prompt injection risks, or frontend accessibility), please feel free to open an issue, submit a PR, or just drop me a message. 
+
+I am always eager to learn, collaborate, and improve the technical foundation of these tools.
+
+---
+
+## 🔗 Connect With Me
 
 If you want to chat about local-first AI, prompt engineering, or building fast with FastAPI and HTMX, let's connect!
 
