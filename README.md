@@ -35,7 +35,7 @@ If a link takes 50+ seconds to load or shows a 502 Bad Gateway, it is simply wak
 Across all five projects, I consistently used the same core philosophy: **local-first, with cloud fallbacks for sharing.**
 
 - **Backend:** FastAPI + Uvicorn
-- **Frontend:** Jinja2 + HTMX (No React, no build step)
+- **Frontend:** Jinja2 + HTMX
 - **Storage:** SQLite (Local, zero config)
 - **AI Engine:** Ollama (Gemma 3 4B) running locally. If Ollama is offline, the app seamlessly falls back to Google AI Studio (Gemini).
 
